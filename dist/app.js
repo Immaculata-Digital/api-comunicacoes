@@ -1,0 +1,30 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.app = void 0;
+const cors_1 = __importDefault(require("cors"));
+const express_1 = __importDefault(require("express"));
+const helmet_1 = __importDefault(require("helmet"));
+const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const errorHandler_1 = require("./core/middlewares/errorHandler");
+const notFound_1 = require("./core/middlewares/notFound");
+const requestLogger_1 = require("./core/middlewares/requestLogger");
+const authenticate_1 = require("./core/middlewares/authenticate");
+const routeAuthorization_1 = require("./core/middlewares/routeAuthorization");
+const swagger_1 = require("./docs/swagger");
+const index_1 = require("./routes/index");
+exports.app = (0, express_1.default)();
+exports.app.use((0, helmet_1.default)());
+exports.app.use((0, cors_1.default)());
+exports.app.use(express_1.default.json({ limit: '10mb' }));
+exports.app.use(express_1.default.urlencoded({ limit: '10mb', extended: true }));
+exports.app.use(requestLogger_1.requestLogger);
+exports.app.use('/docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_1.swaggerSpec));
+exports.app.use('/api', authenticate_1.authenticate);
+exports.app.use('/api', routeAuthorization_1.routeAuthorization);
+exports.app.use('/api', index_1.routes);
+exports.app.use(notFound_1.notFound);
+exports.app.use(errorHandler_1.errorHandler);
+//# sourceMappingURL=app.js.map

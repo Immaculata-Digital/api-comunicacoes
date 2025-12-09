@@ -1,0 +1,1 @@
+{"version":3,"file":"CreateRemetenteSmtpDTO.d.ts","sourceRoot":"","sources":["../../../../src/modules/remetentes-smtp/dto/CreateRemetenteSmtpDTO.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,sBAAsB;IACrC,IAAI,EAAE,MAAM,CAAA;IACZ,KAAK,EAAE,MAAM,CAAA;IACb,KAAK,EAAE,MAAM,CAAA;IACb,SAAS,EAAE,MAAM,CAAA;IACjB,SAAS,EAAE,MAAM,CAAA;IACjB,WAAW,EAAE,OAAO,CAAA;IACpB,YAAY,EAAE,MAAM,CAAA;CACrB"}
