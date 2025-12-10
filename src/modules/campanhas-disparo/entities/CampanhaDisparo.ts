@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto'
 
 export type TipoCampanha = 'email'
-export type TipoEnvio = 'manual' | 'agendado'
+export type TipoEnvio = 'manual' | 'agendado' | 'boas_vindas' | 'atualizacao_pontos' | 'resgate' | 'reset_senha'
 export type StatusCampanha = 'rascunho' | 'agendada' | 'enviando' | 'concluida' | 'cancelada'
 export type TipoDestinatario = 'todos' | 'lojas_especificas' | 'clientes_especificos'
 
@@ -64,7 +64,7 @@ export class CampanhaDisparo {
       ...data,
       id_campanha: randomUUID(),
       chave,
-      status: data.tipo_envio === 'agendado' ? 'agendada' : 'rascunho',
+      status: data.tipo_envio === 'agendado' ? 'agendada' : 'rascunho', // Tipos automáticos também ficam como rascunho até serem disparados
       total_enviados: 0,
       total_entregues: 0,
       total_abertos: 0,

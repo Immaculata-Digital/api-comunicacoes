@@ -3,7 +3,7 @@ export interface UpdateCampanhaDisparoDTO {
   assunto?: string | undefined
   html?: string | undefined
   remetente_id?: string | undefined
-  tipo_envio?: 'manual' | 'agendado' | undefined
+  tipo_envio?: 'manual' | 'agendado' | 'boas_vindas' | 'atualizacao_pontos' | 'resgate' | 'reset_senha' | undefined
   data_agendamento?: string | null | undefined
   status?: 'rascunho' | 'agendada' | 'enviando' | 'concluida' | 'cancelada' | undefined
   tipo_destinatario?: 'todos' | 'lojas_especificas' | 'clientes_especificos' | undefined

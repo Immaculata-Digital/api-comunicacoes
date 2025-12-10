@@ -105,6 +105,19 @@ export class PostgresCampanhaDisparoRepository implements ICampanhaDisparoReposi
     }
   }
 
+  async findByTipoEnvio(schema: string, tipoEnvio: string): Promise<CampanhaDisparoProps[]> {
+    const client = await pool.connect()
+    try {
+      const result = await client.query<CampanhaDisparoRow>(
+        `SELECT * FROM "${schema}".campanhas_disparo WHERE tipo_envio = $1 ORDER BY dt_cadastro DESC`,
+        [tipoEnvio]
+      )
+      return result.rows.map(mapRowToProps)
+    } finally {
+      client.release()
+    }
+  }
+
   async create(schema: string, campanha: CampanhaDisparo): Promise<CampanhaDisparoProps> {
     const client = await pool.connect()
     try {

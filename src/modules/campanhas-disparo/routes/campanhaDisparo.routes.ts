@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { campanhaDisparoController } from '../controllers/CampanhaDisparoController'
+import { disparoAutomaticoController } from '../controllers/DisparoAutomaticoController'
 import { tenantSchema } from '../../../core/middlewares/tenantSchema'
 
 export const campanhaDisparoRoutes = Router()
@@ -10,4 +11,5 @@ campanhaDisparoRoutes.post('/:schema/campanhas-disparo', tenantSchema, campanhaD
 campanhaDisparoRoutes.put('/:schema/campanhas-disparo/:id', tenantSchema, campanhaDisparoController.update)
 campanhaDisparoRoutes.delete('/:schema/campanhas-disparo/:id', tenantSchema, campanhaDisparoController.destroy)
 campanhaDisparoRoutes.post('/:schema/campanhas-disparo/:id/enviar', tenantSchema, campanhaDisparoController.enviar)
+campanhaDisparoRoutes.post('/:schema/disparo-automatico', tenantSchema, disparoAutomaticoController.disparar)
 

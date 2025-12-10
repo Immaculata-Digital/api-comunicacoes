@@ -33,9 +33,9 @@ export class EnviarCampanhaDisparoUseCase {
 
     const campanha = CampanhaDisparo.restore(campanhaProps)
 
-    // Verificar se a campanha é do tipo manual
-    if (campanhaProps.tipo_envio !== 'manual') {
-      throw new AppError('Apenas campanhas do tipo manual podem ser enviadas manualmente', 400)
+    // Verificar se a campanha pode ser enviada manualmente (apenas manual ou agendado)
+    if (campanhaProps.tipo_envio !== 'manual' && campanhaProps.tipo_envio !== 'agendado') {
+      throw new AppError('Apenas campanhas do tipo manual ou agendado podem ser enviadas manualmente', 400)
     }
 
     // Buscar o remetente SMTP

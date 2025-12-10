@@ -18,7 +18,7 @@ export class UpdateCampanhaDisparoUseCase {
       assunto?: string
       html?: string
       remetente_id?: string
-      tipo_envio?: 'manual' | 'agendado'
+      tipo_envio?: 'manual' | 'agendado' | 'boas_vindas' | 'atualizacao_pontos' | 'resgate' | 'reset_senha'
       data_agendamento?: Date | null
       status?: 'rascunho' | 'agendada' | 'enviando' | 'concluida' | 'cancelada'
       tipo_destinatario?: 'todos' | 'lojas_especificas' | 'clientes_especificos'
@@ -32,7 +32,17 @@ export class UpdateCampanhaDisparoUseCase {
     if (data.assunto !== undefined) updateData.assunto = data.assunto
     if (data.html !== undefined) updateData.html = data.html
     if (data.remetente_id !== undefined) updateData.remetente_id = data.remetente_id
-    if (data.tipo_envio !== undefined) updateData.tipo_envio = data.tipo_envio
+    if (data.tipo_envio !== undefined) {
+      updateData.tipo_envio = data.tipo_envio
+      // Se mudou para um tipo automático, anular vínculos com destinatários e data de agendamento
+      const tiposAutomaticos = ['boas_vindas', 'atualizacao_pontos', 'resgate', 'reset_senha']
+      if (tiposAutomaticos.includes(data.tipo_envio)) {
+        updateData.tipo_destinatario = 'todos'
+        updateData.lojas_ids = null
+        updateData.clientes_ids = null
+        updateData.data_agendamento = null
+      }
+    }
     if (data.data_agendamento !== undefined) {
       const dataAgendamento = data.data_agendamento && typeof data.data_agendamento === 'string'
         ? new Date(data.data_agendamento)

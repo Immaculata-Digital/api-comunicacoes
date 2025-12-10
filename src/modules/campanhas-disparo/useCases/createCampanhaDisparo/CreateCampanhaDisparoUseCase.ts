@@ -25,7 +25,7 @@ export class CreateCampanhaDisparoUseCase {
       assunto: string
       html: string
       remetente_id: string
-      tipo_envio: 'manual' | 'agendado'
+      tipo_envio: 'manual' | 'agendado' | 'boas_vindas' | 'atualizacao_pontos' | 'resgate' | 'reset_senha'
       data_agendamento: Date | null
       chave?: string
       tipo_destinatario?: 'todos' | 'lojas_especificas' | 'clientes_especificos'
