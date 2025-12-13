@@ -27,12 +27,12 @@ export class CreateCampanhaDisparoUseCase {
       remetente_id: string
       tipo_envio: 'manual' | 'agendado' | 'boas_vindas' | 'atualizacao_pontos' | 'resgate' | 'reset_senha'
       data_agendamento: Date | null
-      chave?: string
-      tipo_destinatario?: 'todos' | 'lojas_especificas' | 'clientes_especificos'
-      lojas_ids?: string | null
-      clientes_ids?: string | null
-      cliente_pode_excluir?: boolean
+      tipo_destinatario: 'todos' | 'lojas_especificas' | 'clientes_especificos'
+      lojas_ids: string | null
+      clientes_ids: string | null
+      cliente_pode_excluir: boolean
       usu_cadastro: number
+      chave?: string
     } = {
       tipo: data.tipo,
       descricao: data.descricao,
