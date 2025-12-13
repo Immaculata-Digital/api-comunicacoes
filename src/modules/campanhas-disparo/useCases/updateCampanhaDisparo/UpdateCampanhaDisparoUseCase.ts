@@ -24,6 +24,7 @@ export class UpdateCampanhaDisparoUseCase {
       tipo_destinatario?: 'todos' | 'lojas_especificas' | 'clientes_especificos'
       lojas_ids?: string | null
       clientes_ids?: string | null
+      cliente_pode_excluir?: boolean
       usu_altera: number
     } = {
       usu_altera: data.usu_altera,
@@ -53,6 +54,7 @@ export class UpdateCampanhaDisparoUseCase {
     if (data.tipo_destinatario !== undefined) updateData.tipo_destinatario = data.tipo_destinatario
     if (data.lojas_ids !== undefined) updateData.lojas_ids = data.lojas_ids
     if (data.clientes_ids !== undefined) updateData.clientes_ids = data.clientes_ids
+    if (data.cliente_pode_excluir !== undefined) updateData.cliente_pode_excluir = data.cliente_pode_excluir
     campanha.update(updateData)
 
     return await this.campanhaDisparoRepository.update(schema, campanha)

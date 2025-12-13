@@ -23,6 +23,7 @@ export interface CampanhaDisparoProps {
   tipo_destinatario: TipoDestinatario
   lojas_ids: string | null
   clientes_ids: string | null
+  cliente_pode_excluir: boolean
   dt_cadastro: Date
   usu_cadastro: number
   dt_altera: Date | null
@@ -37,6 +38,7 @@ export type CreateCampanhaDisparoProps = Omit<
   tipo_destinatario?: TipoDestinatario
   lojas_ids?: string | null
   clientes_ids?: string | null
+  cliente_pode_excluir?: boolean
 }
 
 export type UpdateCampanhaDisparoProps = {
@@ -50,6 +52,7 @@ export type UpdateCampanhaDisparoProps = {
   tipo_destinatario?: TipoDestinatario
   lojas_ids?: string | null
   clientes_ids?: string | null
+  cliente_pode_excluir?: boolean
   usu_altera: number
 }
 
@@ -72,6 +75,7 @@ export class CampanhaDisparo {
       tipo_destinatario: data.tipo_destinatario || 'todos',
       lojas_ids: data.lojas_ids || null,
       clientes_ids: data.clientes_ids || null,
+      cliente_pode_excluir: data.cliente_pode_excluir !== undefined ? data.cliente_pode_excluir : true,
       dt_cadastro: timestamp,
       dt_altera: null,
       usu_altera: null,
@@ -112,6 +116,9 @@ export class CampanhaDisparo {
     }
     if (data.clientes_ids !== undefined) {
       this.props.clientes_ids = data.clientes_ids
+    }
+    if (data.cliente_pode_excluir !== undefined) {
+      this.props.cliente_pode_excluir = data.cliente_pode_excluir
     }
     this.props.usu_altera = data.usu_altera
     this.props.dt_altera = new Date()

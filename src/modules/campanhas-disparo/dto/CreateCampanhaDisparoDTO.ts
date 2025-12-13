@@ -10,6 +10,7 @@ export interface CreateCampanhaDisparoDTO {
   tipo_destinatario?: 'todos' | 'lojas_especificas' | 'clientes_especificos' | undefined
   lojas_ids?: string | null | undefined
   clientes_ids?: string | null | undefined
+  cliente_pode_excluir?: boolean | undefined
   usu_cadastro: number
 }
 

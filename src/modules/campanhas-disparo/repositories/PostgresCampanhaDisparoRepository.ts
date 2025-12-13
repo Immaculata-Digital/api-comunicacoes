@@ -21,6 +21,7 @@ type CampanhaDisparoRow = {
   tipo_destinatario: string
   lojas_ids: string | null
   clientes_ids: string | null
+  cliente_pode_excluir: boolean
   dt_cadastro: Date
   usu_cadastro: number
   dt_altera: Date | null
@@ -45,6 +46,7 @@ const mapRowToProps = (row: CampanhaDisparoRow): CampanhaDisparoProps => ({
   tipo_destinatario: (row.tipo_destinatario || 'todos') as CampanhaDisparoProps['tipo_destinatario'],
   lojas_ids: row.lojas_ids,
   clientes_ids: row.clientes_ids,
+  cliente_pode_excluir: row.cliente_pode_excluir !== undefined ? row.cliente_pode_excluir : true,
   dt_cadastro: row.dt_cadastro,
   usu_cadastro: row.usu_cadastro,
   dt_altera: row.dt_altera,
@@ -128,8 +130,8 @@ export class PostgresCampanhaDisparoRepository implements ICampanhaDisparoReposi
             id_campanha, tipo, descricao, assunto, html, remetente_id, tipo_envio,
             data_agendamento, status, total_enviados, total_entregues, total_abertos,
             total_cliques, chave, tipo_destinatario, lojas_ids, clientes_ids,
-            dt_cadastro, usu_cadastro, dt_altera, usu_altera
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+            cliente_pode_excluir, dt_cadastro, usu_cadastro, dt_altera, usu_altera
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
         `,
         [
           data.id_campanha,
@@ -149,6 +151,7 @@ export class PostgresCampanhaDisparoRepository implements ICampanhaDisparoReposi
           data.tipo_destinatario,
           data.lojas_ids,
           data.clientes_ids,
+          data.cliente_pode_excluir,
           data.dt_cadastro,
           data.usu_cadastro,
           data.dt_altera,
@@ -183,8 +186,9 @@ export class PostgresCampanhaDisparoRepository implements ICampanhaDisparoReposi
             tipo_destinatario = $9,
             lojas_ids = $10,
             clientes_ids = $11,
-            dt_altera = $12,
-            usu_altera = $13
+            cliente_pode_excluir = $12,
+            dt_altera = $13,
+            usu_altera = $14
           WHERE id_campanha = $1
         `,
         [
@@ -199,6 +203,7 @@ export class PostgresCampanhaDisparoRepository implements ICampanhaDisparoReposi
           data.tipo_destinatario,
           data.lojas_ids,
           data.clientes_ids,
+          data.cliente_pode_excluir,
           data.dt_altera,
           data.usu_altera,
         ]

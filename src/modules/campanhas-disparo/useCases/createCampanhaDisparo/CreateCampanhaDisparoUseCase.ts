@@ -31,6 +31,7 @@ export class CreateCampanhaDisparoUseCase {
       tipo_destinatario?: 'todos' | 'lojas_especificas' | 'clientes_especificos'
       lojas_ids?: string | null
       clientes_ids?: string | null
+      cliente_pode_excluir?: boolean
       usu_cadastro: number
     } = {
       tipo: data.tipo,
@@ -43,6 +44,7 @@ export class CreateCampanhaDisparoUseCase {
       tipo_destinatario: data.tipo_destinatario || 'todos',
       lojas_ids: data.lojas_ids || null,
       clientes_ids: data.clientes_ids || null,
+      cliente_pode_excluir: data.cliente_pode_excluir !== undefined ? data.cliente_pode_excluir : true,
       usu_cadastro: data.usu_cadastro,
     }
     
