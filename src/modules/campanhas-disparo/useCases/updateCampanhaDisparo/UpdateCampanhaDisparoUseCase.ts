@@ -18,10 +18,10 @@ export class UpdateCampanhaDisparoUseCase {
       assunto?: string
       html?: string
       remetente_id?: string
-      tipo_envio?: 'manual' | 'agendado' | 'boas_vindas' | 'atualizacao_pontos' | 'resgate' | 'reset_senha'
+      tipo_envio?: 'manual' | 'agendado' | 'boas_vindas' | 'atualizacao_pontos' | 'resgate' | 'reset_senha' | 'resgate_nao_retirar_loja'
       data_agendamento?: Date | null
       status?: 'rascunho' | 'agendada' | 'enviando' | 'concluida' | 'cancelada'
-      tipo_destinatario?: 'todos' | 'lojas_especificas' | 'clientes_especificos'
+      tipo_destinatario?: 'todos' | 'lojas_especificas' | 'clientes_especificos' | 'grupo_acesso'
       lojas_ids?: string | null
       clientes_ids?: string | null
       cliente_pode_excluir?: boolean
@@ -36,9 +36,14 @@ export class UpdateCampanhaDisparoUseCase {
     if (data.tipo_envio !== undefined) {
       updateData.tipo_envio = data.tipo_envio
       // Se mudou para um tipo automático, anular vínculos com destinatários e data de agendamento
-      const tiposAutomaticos = ['boas_vindas', 'atualizacao_pontos', 'resgate', 'reset_senha']
+      const tiposAutomaticos = ['boas_vindas', 'atualizacao_pontos', 'resgate', 'reset_senha', 'resgate_nao_retirar_loja']
       if (tiposAutomaticos.includes(data.tipo_envio)) {
-        updateData.tipo_destinatario = 'todos'
+        // Para resgate_nao_retirar_loja, manter tipo_destinatario como 'grupo_acesso'
+        if (data.tipo_envio === 'resgate_nao_retirar_loja') {
+          updateData.tipo_destinatario = 'grupo_acesso'
+        } else {
+          updateData.tipo_destinatario = 'todos'
+        }
         updateData.lojas_ids = null
         updateData.clientes_ids = null
         updateData.data_agendamento = null

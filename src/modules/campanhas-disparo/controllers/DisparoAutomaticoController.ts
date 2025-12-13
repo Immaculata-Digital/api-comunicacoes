@@ -6,7 +6,7 @@ import { DisparoAutomaticoService } from '../services/DisparoAutomaticoService'
 import { z } from 'zod'
 
 const disparoAutomaticoSchema = z.object({
-  tipo_envio: z.enum(['boas_vindas', 'atualizacao_pontos', 'resgate', 'reset_senha']),
+  tipo_envio: z.enum(['boas_vindas', 'atualizacao_pontos', 'resgate', 'reset_senha', 'resgate_nao_retirar_loja']),
   cliente: z.object({
     id_cliente: z.number().int().positive(),
     nome_completo: z.string(),
@@ -56,6 +56,9 @@ export class DisparoAutomaticoController {
           break
         case 'reset_senha':
           await this.disparoAutomaticoService.dispararResetSenha(schema, cliente, accessToken)
+          break
+        case 'resgate_nao_retirar_loja':
+          await this.disparoAutomaticoService.dispararResgateNaoRetirarLoja(schema, cliente, accessToken)
           break
         default:
           throw new AppError('Tipo de disparo inválido', 400)

@@ -1,9 +1,9 @@
 import { randomUUID } from 'crypto'
 
 export type TipoCampanha = 'email'
-export type TipoEnvio = 'manual' | 'agendado' | 'boas_vindas' | 'atualizacao_pontos' | 'resgate' | 'reset_senha'
+export type TipoEnvio = 'manual' | 'agendado' | 'boas_vindas' | 'atualizacao_pontos' | 'resgate' | 'reset_senha' | 'resgate_nao_retirar_loja'
 export type StatusCampanha = 'rascunho' | 'agendada' | 'enviando' | 'concluida' | 'cancelada'
-export type TipoDestinatario = 'todos' | 'lojas_especificas' | 'clientes_especificos'
+export type TipoDestinatario = 'todos' | 'lojas_especificas' | 'clientes_especificos' | 'grupo_acesso'
 
 export interface CampanhaDisparoProps {
   id_campanha: string

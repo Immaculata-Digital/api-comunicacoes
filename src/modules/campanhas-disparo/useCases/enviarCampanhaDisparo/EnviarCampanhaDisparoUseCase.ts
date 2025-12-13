@@ -18,6 +18,13 @@ interface ClienteDTO {
   id_loja: number | null
 }
 
+interface UsuarioDTO {
+  id_usuario: number
+  email: string
+  login: string
+  id_grupo_usuario: number
+}
+
 export class EnviarCampanhaDisparoUseCase {
   constructor(
     private readonly campanhaDisparoRepository: ICampanhaDisparoRepository,
@@ -152,6 +159,11 @@ export class EnviarCampanhaDisparoUseCase {
     const { tipo_destinatario, lojas_ids, clientes_ids } = campanha
 
     try {
+      // Se for grupo_acesso, buscar usuários do grupo
+      if (tipo_destinatario === 'grupo_acesso' && clientes_ids) {
+        return await this.resolverDestinatariosGrupoAcesso(clientes_ids)
+      }
+
       // Buscar clientes da API de clientes
       const apiClientesUrl = process.env.API_CLIENTES_V2_URL || 'http://localhost:7773/api'
       
@@ -217,6 +229,53 @@ export class EnviarCampanhaDisparoUseCase {
     } catch (error: any) {
       console.error('Erro ao resolver destinatários:', error)
       throw new AppError('Erro ao buscar destinatários', 500)
+    }
+  }
+
+  /**
+   * Busca usuários de um grupo de acesso pela chave do grupo
+   * Usa clientes_ids para armazenar a chave do grupo (ex: "ADM-FRANQUIA")
+   */
+  private async resolverDestinatariosGrupoAcesso(grupoChave: string): Promise<ClienteDTO[]> {
+    try {
+      const apiUsuariosUrl = env.apiUsuarios.url.replace(/\/api\/?$/, '').replace(/\/$/, '')
+      
+      // Buscar grupos com a chave especificada
+      const response = await axios.get(`${apiUsuariosUrl}/api/grupos-usuarios/public/grupo/${grupoChave}`)
+      
+      const grupos = response.data?.data || []
+      const usuarios: UsuarioDTO[] = []
+      
+      // Extrair todos os usuários dos grupos
+      for (const grupo of grupos) {
+        if (grupo.usuarios && Array.isArray(grupo.usuarios)) {
+          usuarios.push(...grupo.usuarios.map((u: any) => ({
+            id_usuario: u.id || u.id_usuario,
+            email: u.email || u.emailUsuario,
+            login: u.login || u.loginUsuario,
+            id_grupo_usuario: u.idGrupoUsuario || u.id_grupo_usuario,
+          })))
+        }
+      }
+      
+      // Converter para formato ClienteDTO (adaptando campos)
+      // Para grupos de acesso, usamos os dados do usuário como cliente
+      return usuarios
+        .filter((u) => u.email && u.email.trim() !== '')
+        .map((u) => ({
+          id_cliente: u.id_usuario, // Usando id_usuario como id_cliente para compatibilidade
+          nome_completo: u.login || u.email, // Usando login como nome
+          email: u.email,
+          whatsapp: '', // Usuários não têm whatsapp
+          saldo: 0, // Usuários não têm saldo
+          cep: '', // Usuários não têm CEP
+          id_loja: null,
+        }))
+    } catch (error: any) {
+      console.error(`Erro ao buscar usuários do grupo ${grupoChave}:`, error.message)
+      // Se o endpoint não existir, tentar buscar via endpoint ADMIN como fallback
+      // ou retornar vazio
+      return []
     }
   }
 
