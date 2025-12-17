@@ -5,6 +5,7 @@ export declare class PostgresCampanhaDisparoRepository implements ICampanhaDispa
     findById(schema: string, id: string): Promise<CampanhaDisparoProps | null>;
     findByChave(schema: string, chave: string): Promise<CampanhaDisparoProps | null>;
     findByRemetenteId(schema: string, remetenteId: string): Promise<CampanhaDisparoProps[]>;
+    findByTipoEnvio(schema: string, tipoEnvio: string): Promise<CampanhaDisparoProps[]>;
     create(schema: string, campanha: CampanhaDisparo): Promise<CampanhaDisparoProps>;
     update(schema: string, campanha: CampanhaDisparo): Promise<CampanhaDisparoProps>;
     delete(schema: string, id: string): Promise<void>;

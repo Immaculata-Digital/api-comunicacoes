@@ -17,6 +17,10 @@ const mapRowToProps = (row) => ({
     total_abertos: row.total_abertos,
     total_cliques: row.total_cliques,
     chave: row.chave,
+    tipo_destinatario: (row.tipo_destinatario || 'todos'),
+    lojas_ids: row.lojas_ids,
+    clientes_ids: row.clientes_ids,
+    cliente_pode_excluir: row.cliente_pode_excluir !== undefined ? row.cliente_pode_excluir : true,
     dt_cadastro: row.dt_cadastro,
     usu_cadastro: row.usu_cadastro,
     dt_altera: row.dt_altera,
@@ -65,6 +69,16 @@ class PostgresCampanhaDisparoRepository {
             client.release();
         }
     }
+    async findByTipoEnvio(schema, tipoEnvio) {
+        const client = await pool_1.pool.connect();
+        try {
+            const result = await client.query(`SELECT * FROM "${schema}".campanhas_disparo WHERE tipo_envio = $1 ORDER BY dt_cadastro DESC`, [tipoEnvio]);
+            return result.rows.map(mapRowToProps);
+        }
+        finally {
+            client.release();
+        }
+    }
     async create(schema, campanha) {
         const client = await pool_1.pool.connect();
         try {
@@ -73,8 +87,9 @@ class PostgresCampanhaDisparoRepository {
           INSERT INTO "${schema}".campanhas_disparo (
             id_campanha, tipo, descricao, assunto, html, remetente_id, tipo_envio,
             data_agendamento, status, total_enviados, total_entregues, total_abertos,
-            total_cliques, chave, dt_cadastro, usu_cadastro, dt_altera, usu_altera
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+            total_cliques, chave, tipo_destinatario, lojas_ids, clientes_ids,
+            cliente_pode_excluir, dt_cadastro, usu_cadastro, dt_altera, usu_altera
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
         `, [
                 data.id_campanha,
                 data.tipo,
@@ -90,6 +105,10 @@ class PostgresCampanhaDisparoRepository {
                 data.total_abertos,
                 data.total_cliques,
                 data.chave,
+                data.tipo_destinatario,
+                data.lojas_ids,
+                data.clientes_ids,
+                data.cliente_pode_excluir,
                 data.dt_cadastro,
                 data.usu_cadastro,
                 data.dt_altera,
@@ -119,8 +138,12 @@ class PostgresCampanhaDisparoRepository {
             tipo_envio = $6,
             data_agendamento = $7,
             status = $8,
-            dt_altera = $9,
-            usu_altera = $10
+            tipo_destinatario = $9,
+            lojas_ids = $10,
+            clientes_ids = $11,
+            cliente_pode_excluir = $12,
+            dt_altera = $13,
+            usu_altera = $14
           WHERE id_campanha = $1
         `, [
                 data.id_campanha,
@@ -131,6 +154,10 @@ class PostgresCampanhaDisparoRepository {
                 data.tipo_envio,
                 data.data_agendamento,
                 data.status,
+                data.tipo_destinatario,
+                data.lojas_ids,
+                data.clientes_ids,
+                data.cliente_pode_excluir,
                 data.dt_altera,
                 data.usu_altera,
             ]);

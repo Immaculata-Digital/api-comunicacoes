@@ -7,6 +7,7 @@ import nodemailer from 'nodemailer'
 import { decryptPassword } from '../../../../core/utils/passwordCipher'
 import { env } from '../../../../config/env'
 import axios from 'axios'
+import { pool } from '../../../../infra/database/pool'
 
 interface ClienteDTO {
   id_cliente: number
@@ -137,16 +138,22 @@ export class EnviarCampanhaDisparoUseCase {
       }
     }
 
-    // Atualizar contadores da campanha
-    const campanhaAtualizada = CampanhaDisparo.restore(campanhaProps)
-    campanhaAtualizada.update({
-      status: 'concluida',
-      total_enviados: campanhaProps.total_enviados + totalEnviados,
-      total_entregues: campanhaProps.total_entregues + totalEntregues,
-      usu_altera: 1, // TODO: pegar do token JWT
-    })
-
-    await this.campanhaDisparoRepository.update(schema, campanhaAtualizada)
+    // Atualizar contadores da campanha usando SQL direto para atualizar total_enviados e total_entregues
+    const client = await pool.connect()
+    try {
+      await client.query(
+        `UPDATE "${schema}".campanhas_disparo 
+         SET status = 'concluida',
+             total_enviados = total_enviados + $1,
+             total_entregues = total_entregues + $2,
+             dt_altera = NOW(),
+             usu_altera = $3
+         WHERE id_campanha = $4`,
+        [totalEnviados, totalEntregues, 1, id] // TODO: pegar usu_altera do token JWT
+      )
+    } finally {
+      client.release()
+    }
 
     return {
       message: `Campanha enviada com sucesso! ${totalEnviados} email(s) enviado(s), ${totalEntregues} entregue(s).`,

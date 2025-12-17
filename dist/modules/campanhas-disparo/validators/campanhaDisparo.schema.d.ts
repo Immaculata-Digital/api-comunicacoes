@@ -6,11 +6,24 @@ export declare const createCampanhaDisparoSchema: z.ZodObject<{
     html: z.ZodString;
     remetente_id: z.ZodString;
     tipo_envio: z.ZodEnum<{
-        imediato: "imediato";
+        manual: "manual";
         agendado: "agendado";
+        boas_vindas: "boas_vindas";
+        atualizacao_pontos: "atualizacao_pontos";
+        resgate: "resgate";
+        reset_senha: "reset_senha";
+        resgate_nao_retirar_loja: "resgate_nao_retirar_loja";
     }>;
     data_agendamento: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     chave: z.ZodOptional<z.ZodString>;
+    tipo_destinatario: z.ZodOptional<z.ZodEnum<{
+        todos: "todos";
+        lojas_especificas: "lojas_especificas";
+        clientes_especificos: "clientes_especificos";
+        grupo_acesso: "grupo_acesso";
+    }>>;
+    lojas_ids: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    clientes_ids: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     usu_cadastro: z.ZodNumber;
 }, z.core.$strip>;
 export declare const updateCampanhaDisparoSchema: z.ZodObject<{
@@ -19,8 +32,13 @@ export declare const updateCampanhaDisparoSchema: z.ZodObject<{
     html: z.ZodOptional<z.ZodString>;
     remetente_id: z.ZodOptional<z.ZodString>;
     tipo_envio: z.ZodOptional<z.ZodEnum<{
-        imediato: "imediato";
+        manual: "manual";
         agendado: "agendado";
+        boas_vindas: "boas_vindas";
+        atualizacao_pontos: "atualizacao_pontos";
+        resgate: "resgate";
+        reset_senha: "reset_senha";
+        resgate_nao_retirar_loja: "resgate_nao_retirar_loja";
     }>>;
     data_agendamento: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     status: z.ZodOptional<z.ZodEnum<{
@@ -30,6 +48,14 @@ export declare const updateCampanhaDisparoSchema: z.ZodObject<{
         concluida: "concluida";
         cancelada: "cancelada";
     }>>;
+    tipo_destinatario: z.ZodOptional<z.ZodEnum<{
+        todos: "todos";
+        lojas_especificas: "lojas_especificas";
+        clientes_especificos: "clientes_especificos";
+        grupo_acesso: "grupo_acesso";
+    }>>;
+    lojas_ids: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    clientes_ids: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     usu_altera: z.ZodNumber;
 }, z.core.$strip>;
 //# sourceMappingURL=campanhaDisparo.schema.d.ts.map

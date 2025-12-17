@@ -44,21 +44,57 @@ export class DisparoAutomaticoController {
       const { tipo_envio, cliente } = parseResult.data
       const accessToken = req.headers.authorization?.replace('Bearer ', '')
 
+      // Criar objeto clienteData apenas com propriedades definidas
+      const clienteData: {
+        id_cliente: number
+        nome_completo: string
+        email: string
+        whatsapp?: string
+        cep?: string
+        codigo_cliente?: string
+        saldo_pontos?: number
+        pontos_acumulados?: number
+        total_pontos?: number
+        codigo_resgate?: string
+        item_nome?: string
+        item_descricao?: string
+        item_qtd_pontos?: number
+        pontos_apos_resgate?: number
+        token_reset?: string
+      } = {
+        id_cliente: cliente.id_cliente,
+        nome_completo: cliente.nome_completo,
+        email: cliente.email,
+      }
+      const clienteAny = cliente as any
+      if (clienteAny.whatsapp !== undefined && clienteAny.whatsapp !== null) clienteData.whatsapp = clienteAny.whatsapp
+      if (clienteAny.cep !== undefined && clienteAny.cep !== null) clienteData.cep = clienteAny.cep
+      if (clienteAny.codigo_cliente !== undefined && clienteAny.codigo_cliente !== null) clienteData.codigo_cliente = clienteAny.codigo_cliente
+      if (clienteAny.saldo_pontos !== undefined && clienteAny.saldo_pontos !== null) clienteData.saldo_pontos = clienteAny.saldo_pontos
+      if (clienteAny.pontos_acumulados !== undefined && clienteAny.pontos_acumulados !== null) clienteData.pontos_acumulados = clienteAny.pontos_acumulados
+      if (clienteAny.total_pontos !== undefined && clienteAny.total_pontos !== null) clienteData.total_pontos = clienteAny.total_pontos
+      if (clienteAny.codigo_resgate !== undefined && clienteAny.codigo_resgate !== null) clienteData.codigo_resgate = clienteAny.codigo_resgate
+      if (clienteAny.item_nome !== undefined && clienteAny.item_nome !== null) clienteData.item_nome = clienteAny.item_nome
+      if (clienteAny.item_descricao !== undefined && clienteAny.item_descricao !== null) clienteData.item_descricao = clienteAny.item_descricao
+      if (clienteAny.item_qtd_pontos !== undefined && clienteAny.item_qtd_pontos !== null) clienteData.item_qtd_pontos = clienteAny.item_qtd_pontos
+      if (clienteAny.pontos_apos_resgate !== undefined && clienteAny.pontos_apos_resgate !== null) clienteData.pontos_apos_resgate = clienteAny.pontos_apos_resgate
+      if (clienteAny.token_reset !== undefined && clienteAny.token_reset !== null) clienteData.token_reset = clienteAny.token_reset
+
       switch (tipo_envio) {
         case 'boas_vindas':
-          await this.disparoAutomaticoService.dispararBoasVindas(schema, cliente, accessToken)
+          await this.disparoAutomaticoService.dispararBoasVindas(schema, clienteData, accessToken)
           break
         case 'atualizacao_pontos':
-          await this.disparoAutomaticoService.dispararAtualizacaoPontos(schema, cliente, accessToken)
+          await this.disparoAutomaticoService.dispararAtualizacaoPontos(schema, clienteData, accessToken)
           break
         case 'resgate':
-          await this.disparoAutomaticoService.dispararResgate(schema, cliente, accessToken)
+          await this.disparoAutomaticoService.dispararResgate(schema, clienteData, accessToken)
           break
         case 'reset_senha':
-          await this.disparoAutomaticoService.dispararResetSenha(schema, cliente, accessToken)
+          await this.disparoAutomaticoService.dispararResetSenha(schema, clienteData, accessToken)
           break
         case 'resgate_nao_retirar_loja':
-          await this.disparoAutomaticoService.dispararResgateNaoRetirarLoja(schema, cliente, accessToken)
+          await this.disparoAutomaticoService.dispararResgateNaoRetirarLoja(schema, clienteData, accessToken)
           break
         default:
           throw new AppError('Tipo de disparo inválido', 400)

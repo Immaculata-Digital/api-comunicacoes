@@ -26,6 +26,10 @@ class CreateCampanhaDisparoUseCase {
             remetente_id: data.remetente_id,
             tipo_envio: data.tipo_envio,
             data_agendamento: dataAgendamento,
+            tipo_destinatario: data.tipo_destinatario || 'todos',
+            lojas_ids: data.lojas_ids || null,
+            clientes_ids: data.clientes_ids || null,
+            cliente_pode_excluir: data.cliente_pode_excluir !== undefined ? data.cliente_pode_excluir : true,
             usu_cadastro: data.usu_cadastro,
         };
         if (data.chave !== undefined) {

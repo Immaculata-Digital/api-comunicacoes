@@ -30,8 +30,8 @@ class UpdateRemetenteSmtpUseCase {
             updateData.email = data.email;
         // Se senha for fornecida e não estiver vazia, criptografar e atualizar
         if (data.senha !== undefined && data.senha.trim() !== '') {
-            const hashedPassword = await (0, passwordCipher_1.hashPassword)(data.senha);
-            updateData.senha = hashedPassword;
+            const encryptedPassword = (0, passwordCipher_1.encryptPassword)(data.senha);
+            updateData.senha = encryptedPassword;
         }
         if (data.smtp_host !== undefined)
             updateData.smtp_host = data.smtp_host;

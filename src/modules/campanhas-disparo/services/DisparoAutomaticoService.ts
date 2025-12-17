@@ -7,6 +7,7 @@ import nodemailer from 'nodemailer'
 import { pool } from '../../../infra/database/pool'
 import axios from 'axios'
 import { env } from '../../../config/env'
+import { EnviarCampanhaDisparoUseCase } from '../useCases/enviarCampanhaDisparo/EnviarCampanhaDisparoUseCase'
 
 interface ClienteData {
   id_cliente: number
@@ -15,6 +16,24 @@ interface ClienteData {
   whatsapp?: string
   cep?: string
   codigo_cliente?: string
+  saldo_pontos?: number
+  pontos_acumulados?: number
+  total_pontos?: number
+  codigo_resgate?: string
+  item_nome?: string
+  item_descricao?: string
+  item_qtd_pontos?: number
+  pontos_apos_resgate?: number
+  token_reset?: string
+}
+
+interface ClienteDataForService {
+  id_cliente: number
+  nome_completo: string
+  email: string
+  whatsapp?: string
+  cep?: string
+  codigo_cliente: string
   saldo_pontos?: number
   pontos_acumulados?: number
   total_pontos?: number
@@ -40,6 +59,10 @@ export class DisparoAutomaticoService {
     cliente: ClienteData,
     accessToken?: string
   ): Promise<void> {
+    const clienteData: ClienteDataForService = {
+      ...cliente,
+      codigo_cliente: cliente.codigo_cliente || `CLI-${cliente.id_cliente}`,
+    }
     const campanhas = await this.campanhaDisparoRepository.findByTipoEnvio(schema, 'boas_vindas')
     
     for (const campanhaProps of campanhas) {
@@ -47,28 +70,14 @@ export class DisparoAutomaticoService {
         // Criar uma campanha temporária para envio
         // Substituir variáveis no HTML
         let html = campanhaProps.html
-        html = html.replace(/\{\{nome_cliente\}\}/g, cliente.nome_completo || 'Cliente')
-        html = html.replace(/\{\{codigo_cliente\}\}/g, cliente.codigo_cliente || '')
-        html = html.replace(/\{\{email_cliente\}\}/g, cliente.email || '')
+        html = html.replace(/\{\{nome_cliente\}\}/g, clienteData.nome_completo || 'Cliente')
+        html = html.replace(/\{\{codigo_cliente\}\}/g, clienteData.codigo_cliente || '')
+        html = html.replace(/\{\{email_cliente\}\}/g, clienteData.email || '')
         
-        // Criar payload de envio com apenas o cliente específico
-        const enviarUseCase = new EnviarCampanhaDisparoUseCase(
-          this.campanhaDisparoRepository,
-          this.remetenteSmtpRepository
-        )
-        
-        // Temporariamente modificar a campanha para enviar apenas para este cliente
-        // Como não podemos modificar diretamente, vamos criar uma cópia temporária
-        // ou usar o método de envio direto
-        
-        // Por enquanto, vamos usar uma abordagem diferente: criar uma campanha temporária
-        // ou modificar o EnviarCampanhaDisparoUseCase para aceitar clientes específicos
-        
-        // Por simplicidade, vamos chamar diretamente o envio com o cliente específico
         await this.enviarParaCliente(
           schema,
           campanhaProps.id_campanha,
-          cliente,
+          clienteData,
           html,
           accessToken
         )
@@ -87,20 +96,24 @@ export class DisparoAutomaticoService {
     cliente: ClienteData,
     accessToken?: string
   ): Promise<void> {
+    const clienteData: ClienteDataForService = {
+      ...cliente,
+      codigo_cliente: cliente.codigo_cliente || `CLI-${cliente.id_cliente}`,
+    }
     const campanhas = await this.campanhaDisparoRepository.findByTipoEnvio(schema, 'atualizacao_pontos')
     
     for (const campanhaProps of campanhas) {
       try {
         let html = campanhaProps.html
-        html = html.replace(/\{\{nome_cliente\}\}/g, cliente.nome_completo || 'Cliente')
-        html = html.replace(/\{\{pontos_acumulados\}\}/g, String(cliente.pontos_acumulados || 0))
-        html = html.replace(/\{\{total_pontos\}\}/g, String(cliente.total_pontos || cliente.saldo_pontos || 0))
-        html = html.replace(/\{\{email_cliente\}\}/g, cliente.email || '')
+        html = html.replace(/\{\{nome_cliente\}\}/g, clienteData.nome_completo || 'Cliente')
+        html = html.replace(/\{\{pontos_acumulados\}\}/g, String(clienteData.pontos_acumulados || 0))
+        html = html.replace(/\{\{total_pontos\}\}/g, String(clienteData.total_pontos || clienteData.saldo_pontos || 0))
+        html = html.replace(/\{\{email_cliente\}\}/g, clienteData.email || '')
         
         await this.enviarParaCliente(
           schema,
           campanhaProps.id_campanha,
-          cliente,
+          clienteData,
           html,
           accessToken
         )
@@ -118,21 +131,25 @@ export class DisparoAutomaticoService {
     cliente: ClienteData,
     accessToken?: string
   ): Promise<void> {
+    const clienteData: ClienteDataForService = {
+      ...cliente,
+      codigo_cliente: cliente.codigo_cliente || `CLI-${cliente.id_cliente}`,
+    }
     const campanhas = await this.campanhaDisparoRepository.findByTipoEnvio(schema, 'resgate')
     
     for (const campanhaProps of campanhas) {
       try {
         let html = campanhaProps.html
-        html = html.replace(/\{\{nome_cliente\}\}/g, cliente.nome_completo || 'Cliente')
-        html = html.replace(/\{\{codigo_resgate\}\}/g, cliente.codigo_resgate || '')
-        html = html.replace(/\{\{item_nome\}\}/g, cliente.item_nome || '')
-        html = html.replace(/\{\{pontos_apos_resgate\}\}/g, String(cliente.pontos_apos_resgate || cliente.saldo_pontos || 0))
-        html = html.replace(/\{\{email_cliente\}\}/g, cliente.email || '')
+        html = html.replace(/\{\{nome_cliente\}\}/g, clienteData.nome_completo || 'Cliente')
+        html = html.replace(/\{\{codigo_resgate\}\}/g, clienteData.codigo_resgate || '')
+        html = html.replace(/\{\{item_nome\}\}/g, clienteData.item_nome || '')
+        html = html.replace(/\{\{pontos_apos_resgate\}\}/g, String(clienteData.pontos_apos_resgate || clienteData.saldo_pontos || 0))
+        html = html.replace(/\{\{email_cliente\}\}/g, clienteData.email || '')
         
         await this.enviarParaCliente(
           schema,
           campanhaProps.id_campanha,
-          cliente,
+          clienteData,
           html,
           accessToken
         )
@@ -150,19 +167,23 @@ export class DisparoAutomaticoService {
     cliente: ClienteData,
     accessToken?: string
   ): Promise<void> {
+    const clienteData: ClienteDataForService = {
+      ...cliente,
+      codigo_cliente: cliente.codigo_cliente || `CLI-${cliente.id_cliente}`,
+    }
     const campanhas = await this.campanhaDisparoRepository.findByTipoEnvio(schema, 'reset_senha')
     
     for (const campanhaProps of campanhas) {
       try {
         let html = campanhaProps.html
-        html = html.replace(/\{\{nome_cliente\}\}/g, cliente.nome_completo || 'Cliente')
-        html = html.replace(/\{\{token_reset\}\}/g, cliente.token_reset || '')
-        html = html.replace(/\{\{email_cliente\}\}/g, cliente.email || '')
+        html = html.replace(/\{\{nome_cliente\}\}/g, clienteData.nome_completo || 'Cliente')
+        html = html.replace(/\{\{token_reset\}\}/g, clienteData.token_reset || '')
+        html = html.replace(/\{\{email_cliente\}\}/g, clienteData.email || '')
         
         await this.enviarParaCliente(
           schema,
           campanhaProps.id_campanha,
-          cliente,
+          clienteData,
           html,
           accessToken
         )
@@ -181,6 +202,10 @@ export class DisparoAutomaticoService {
     cliente: ClienteData,
     accessToken?: string
   ): Promise<void> {
+    const clienteData: ClienteDataForService = {
+      ...cliente,
+      codigo_cliente: cliente.codigo_cliente || `CLI-${cliente.id_cliente}`,
+    }
     const campanhas = await this.campanhaDisparoRepository.findByTipoEnvio(schema, 'resgate_nao_retirar_loja')
     
     for (const campanhaProps of campanhas) {
@@ -194,24 +219,19 @@ export class DisparoAutomaticoService {
 
         let html = campanhaProps.html
         // Substituir variáveis do cliente
-        html = html.replace(/\{\{cliente\.nome_completo\}\}/g, cliente.nome_completo || '')
-        html = html.replace(/\{\{cliente\.email\}\}/g, cliente.email || '')
-        html = html.replace(/\{\{cliente\.whatsapp\}\}/g, cliente.whatsapp || '')
-        html = html.replace(/\{\{cliente\.cep\}\}/g, cliente.cep || '')
-        html = html.replace(/\{\{cliente\.saldo\}\}/g, String(cliente.saldo_pontos || 0))
-        html = html.replace(/\{\{cliente\.id_cliente\}\}/g, String(cliente.id_cliente || ''))
+        html = html.replace(/\{\{cliente\.nome_completo\}\}/g, clienteData.nome_completo || '')
+        html = html.replace(/\{\{cliente\.email\}\}/g, clienteData.email || '')
+        html = html.replace(/\{\{cliente\.whatsapp\}\}/g, clienteData.whatsapp || '')
+        html = html.replace(/\{\{cliente\.cep\}\}/g, clienteData.cep || '')
+        html = html.replace(/\{\{cliente\.saldo\}\}/g, String(clienteData.saldo_pontos || 0))
+        html = html.replace(/\{\{cliente\.id_cliente\}\}/g, String(clienteData.id_cliente || ''))
         
         // Substituir variáveis do item
-        html = html.replace(/\{\{codigo_resgate\}\}/g, cliente.codigo_resgate || '')
-        html = html.replace(/\{\{item\.nome_item\}\}/g, cliente.item_nome || '')
-        html = html.replace(/\{\{item\.descricao\}\}/g, cliente.item_descricao || '')
-        html = html.replace(/\{\{item\.qtd_pontos\}\}/g, String(cliente.item_qtd_pontos || 0))
+        html = html.replace(/\{\{codigo_resgate\}\}/g, clienteData.codigo_resgate || '')
+        html = html.replace(/\{\{item\.nome_item\}\}/g, clienteData.item_nome || '')
+        html = html.replace(/\{\{item\.descricao\}\}/g, clienteData.item_descricao || '')
+        html = html.replace(/\{\{item\.qtd_pontos\}\}/g, String(clienteData.item_qtd_pontos || 0))
         
-        // Enviar para o grupo usando o EnviarCampanhaDisparoUseCase
-        // Mas precisamos criar uma versão que aceita HTML personalizado
-        // Por enquanto, vamos atualizar o HTML da campanha temporariamente ou criar um método específico
-        
-        // Vamos usar o método enviarParaGrupo que criaremos
         await this.enviarParaGrupoAcesso(
           schema,
           campanhaProps.id_campanha,
@@ -331,7 +351,7 @@ export class DisparoAutomaticoService {
   private async enviarParaCliente(
     schema: string,
     campanhaId: string,
-    cliente: ClienteData,
+    cliente: ClienteDataForService,
     html: string,
     accessToken?: string
   ): Promise<void> {

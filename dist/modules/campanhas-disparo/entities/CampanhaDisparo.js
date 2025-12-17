@@ -13,11 +13,15 @@ class CampanhaDisparo {
             ...data,
             id_campanha: (0, crypto_1.randomUUID)(),
             chave,
-            status: data.tipo_envio === 'agendado' ? 'agendada' : 'rascunho',
+            status: data.tipo_envio === 'agendado' ? 'agendada' : 'rascunho', // Tipos automáticos também ficam como rascunho até serem disparados
             total_enviados: 0,
             total_entregues: 0,
             total_abertos: 0,
             total_cliques: 0,
+            tipo_destinatario: data.tipo_destinatario || 'todos',
+            lojas_ids: data.lojas_ids || null,
+            clientes_ids: data.clientes_ids || null,
+            cliente_pode_excluir: data.cliente_pode_excluir !== undefined ? data.cliente_pode_excluir : true,
             dt_cadastro: timestamp,
             dt_altera: null,
             usu_altera: null,
@@ -47,6 +51,18 @@ class CampanhaDisparo {
         }
         if (data.status !== undefined) {
             this.props.status = data.status;
+        }
+        if (data.tipo_destinatario !== undefined) {
+            this.props.tipo_destinatario = data.tipo_destinatario;
+        }
+        if (data.lojas_ids !== undefined) {
+            this.props.lojas_ids = data.lojas_ids;
+        }
+        if (data.clientes_ids !== undefined) {
+            this.props.clientes_ids = data.clientes_ids;
+        }
+        if (data.cliente_pode_excluir !== undefined) {
+            this.props.cliente_pode_excluir = data.cliente_pode_excluir;
         }
         this.props.usu_altera = data.usu_altera;
         this.props.dt_altera = new Date();

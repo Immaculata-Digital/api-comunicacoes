@@ -14,12 +14,12 @@ class CreateRemetenteSmtpUseCase {
         if (existing) {
             throw new AppError_1.AppError('Já existe um remetente com este email', 409);
         }
-        // Criptografar a senha antes de salvar
-        const hashedPassword = await (0, passwordCipher_1.hashPassword)(data.senha);
+        // Criptografar a senha antes de salvar (usar criptografia, não hash, para poder descriptografar depois)
+        const encryptedPassword = (0, passwordCipher_1.encryptPassword)(data.senha);
         const remetente = RemetenteSmtp_1.RemetenteSmtp.create({
             nome: data.nome,
             email: data.email,
-            senha: hashedPassword,
+            senha: encryptedPassword,
             smtp_host: data.smtp_host,
             smtp_port: data.smtp_port,
             smtp_secure: data.smtp_secure,

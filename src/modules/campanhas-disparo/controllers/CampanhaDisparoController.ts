@@ -10,6 +10,7 @@ import { EnviarCampanhaDisparoUseCase } from '../useCases/enviarCampanhaDisparo/
 import { createCampanhaDisparoSchema, updateCampanhaDisparoSchema } from '../validators/campanhaDisparo.schema'
 import { enviarCampanhaDisparoSchema } from '../validators/enviarCampanhaDisparo.schema'
 import { remetenteSmtpRepository } from '../../remetentes-smtp/repositories'
+import type { EnviarCampanhaDisparoDTO } from '../dto/EnviarCampanhaDisparoDTO'
 
 export class CampanhaDisparoController {
   private readonly listCampanhasDisparo: ListCampanhasDisparoUseCase
@@ -25,7 +26,7 @@ export class CampanhaDisparoController {
     this.createCampanhaDisparo = new CreateCampanhaDisparoUseCase(campanhaDisparoRepository)
     this.updateCampanhaDisparo = new UpdateCampanhaDisparoUseCase(campanhaDisparoRepository)
     this.deleteCampanhaDisparo = new DeleteCampanhaDisparoUseCase(campanhaDisparoRepository)
-    this.enviarCampanhaDisparo = new EnviarCampanhaDisparoUseCase(campanhaDisparoRepository, remetenteSmtpRepository, undefined)
+    this.enviarCampanhaDisparo = new EnviarCampanhaDisparoUseCase(campanhaDisparoRepository, remetenteSmtpRepository)
   }
 
   index = async (req: Request, res: Response, next: NextFunction) => {
@@ -117,7 +118,12 @@ export class CampanhaDisparoController {
       const authHeader = req.headers.authorization
       const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : undefined
 
-      const result = await this.enviarCampanhaDisparo.execute(schema, id, parseResult.data, accessToken)
+      const enviarData: EnviarCampanhaDisparoDTO = {}
+      if (parseResult.data.anexos !== undefined) {
+        enviarData.anexos = parseResult.data.anexos
+      }
+
+      const result = await this.enviarCampanhaDisparo.execute(schema, id, enviarData, accessToken)
       return res.json(result)
     } catch (error) {
       return next(error)
