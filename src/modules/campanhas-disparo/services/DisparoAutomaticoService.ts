@@ -28,7 +28,7 @@ interface ClienteData {
 }
 
 interface ClienteDataForService {
-  id_cliente: number
+  id_cliente: number | string  // number para clientes, string (UUID) para usuários do sistema
   nome_completo: string
   email: string
   whatsapp?: string

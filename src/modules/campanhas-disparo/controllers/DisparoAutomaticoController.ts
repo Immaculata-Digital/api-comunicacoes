@@ -5,20 +5,26 @@ import { remetenteSmtpRepository } from '../../remetentes-smtp/repositories'
 import { DisparoAutomaticoService } from '../services/DisparoAutomaticoService'
 import { z } from 'zod'
 
+// Schema base para cliente
+const clienteBaseSchema = {
+  nome_completo: z.string(),
+  email: z.string().email(),
+  codigo_cliente: z.string().optional(),
+  saldo_pontos: z.number().optional(),
+  pontos_acumulados: z.number().optional(),
+  total_pontos: z.number().optional(),
+  codigo_resgate: z.string().optional(),
+  item_nome: z.string().optional(),
+  pontos_apos_resgate: z.number().optional(),
+  token_reset: z.string().optional(),
+}
+
+// Schema que aceita id_cliente como número ou string (para reset_senha de usuários do sistema)
 const disparoAutomaticoSchema = z.object({
   tipo_envio: z.enum(['boas_vindas', 'atualizacao_pontos', 'resgate', 'reset_senha', 'resgate_nao_retirar_loja']),
   cliente: z.object({
-    id_cliente: z.number().int().positive(),
-    nome_completo: z.string(),
-    email: z.string().email(),
-    codigo_cliente: z.string().optional(),
-    saldo_pontos: z.number().optional(),
-    pontos_acumulados: z.number().optional(),
-    total_pontos: z.number().optional(),
-    codigo_resgate: z.string().optional(),
-    item_nome: z.string().optional(),
-    pontos_apos_resgate: z.number().optional(),
-    token_reset: z.string().optional(),
+    id_cliente: z.union([z.number().int().positive(), z.string()]),
+    ...clienteBaseSchema,
   }),
 })
 
@@ -45,8 +51,9 @@ export class DisparoAutomaticoController {
       const accessToken = req.headers.authorization?.replace('Bearer ', '')
 
       // Criar objeto clienteData apenas com propriedades definidas
+      // id_cliente pode ser number (clientes) ou string (usuários do sistema)
       const clienteData: {
-        id_cliente: number
+        id_cliente: number | string
         nome_completo: string
         email: string
         whatsapp?: string
