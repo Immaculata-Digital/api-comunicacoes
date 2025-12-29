@@ -173,12 +173,21 @@ export class DisparoAutomaticoService {
     }
     const campanhas = await this.campanhaDisparoRepository.findByTipoEnvio(schema, 'reset_senha')
     
+    // Construir URL de reset se houver token
+    let urlReset = ''
+    if (clienteData.token_reset) {
+      const baseUrl = env.app.webUrl.replace(/\/$/, '')
+      const path = env.app.passwordResetPath.startsWith('/') ? env.app.passwordResetPath : `/${env.app.passwordResetPath}`
+      urlReset = `${baseUrl}${path}?token=${clienteData.token_reset}`
+    }
+    
     for (const campanhaProps of campanhas) {
       try {
         let html = campanhaProps.html
         html = html.replace(/\{\{nome_cliente\}\}/g, clienteData.nome_completo || 'Cliente')
         html = html.replace(/\{\{token_reset\}\}/g, clienteData.token_reset || '')
         html = html.replace(/\{\{email_cliente\}\}/g, clienteData.email || '')
+        html = html.replace(/\{\{url_reset\}\}/g, urlReset)
         
         await this.enviarParaCliente(
           schema,
