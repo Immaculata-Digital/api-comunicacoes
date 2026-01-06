@@ -168,7 +168,7 @@ export class EnviarCampanhaDisparoUseCase {
     try {
       // Se for grupo_acesso, buscar usuários do grupo
       if (tipo_destinatario === 'grupo_acesso' && clientes_ids) {
-        return await this.resolverDestinatariosGrupoAcesso(clientes_ids)
+        return await this.resolverDestinatariosGrupoAcesso(schema, clientes_ids)
       }
 
       // Buscar clientes da API de clientes
@@ -243,12 +243,17 @@ export class EnviarCampanhaDisparoUseCase {
    * Busca usuários de um grupo de acesso pela chave do grupo
    * Usa clientes_ids para armazenar a chave do grupo (ex: "ADM-FRANQUIA")
    */
-  private async resolverDestinatariosGrupoAcesso(grupoChave: string): Promise<ClienteDTO[]> {
+  private async resolverDestinatariosGrupoAcesso(schema: string, grupoChave: string): Promise<ClienteDTO[]> {
     try {
       const apiUsuariosUrl = env.apiUsuarios.url.replace(/\/api\/?$/, '').replace(/\/$/, '')
       
       // Buscar grupos com a chave especificada
-      const response = await axios.get(`${apiUsuariosUrl}/api/grupos-usuarios/public/grupo/${grupoChave}`)
+      // O schema é passado no header x-schema
+      const response = await axios.get(`${apiUsuariosUrl}/api/groups/public/grupo/${grupoChave}`, {
+        headers: {
+          'x-schema': schema,
+        },
+      })
       
       const grupos = response.data?.data || []
       const usuarios: UsuarioDTO[] = []

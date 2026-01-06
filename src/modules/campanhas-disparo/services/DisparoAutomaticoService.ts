@@ -10,7 +10,7 @@ import { env } from '../../../config/env'
 import { EnviarCampanhaDisparoUseCase } from '../useCases/enviarCampanhaDisparo/EnviarCampanhaDisparoUseCase'
 
 interface ClienteData {
-  id_cliente: number
+  id_cliente: number | string
   nome_completo: string
   email: string
   whatsapp?: string
@@ -311,7 +311,13 @@ export class DisparoAutomaticoService {
     const grupoChave = campanhaProps.clientes_ids
     const apiUsuariosUrl = env.apiUsuarios.url.replace(/\/api\/?$/, '').replace(/\/$/, '')
     
-    const response = await axios.get(`${apiUsuariosUrl}/api/grupos-usuarios/public/grupo/${grupoChave}`)
+    // Chamar endpoint público para buscar grupo por código com usuários
+    // O schema é passado no header x-schema
+    const response = await axios.get(`${apiUsuariosUrl}/api/groups/public/grupo/${grupoChave}`, {
+      headers: {
+        'x-schema': schema,
+      },
+    })
     
     const grupos = response.data?.data || []
     const usuarios: any[] = []
