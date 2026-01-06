@@ -6,10 +6,10 @@ export declare const createCampanhaDisparoSchema: z.ZodObject<{
     html: z.ZodString;
     remetente_id: z.ZodString;
     tipo_envio: z.ZodEnum<{
+        boas_vindas: "boas_vindas";
         reset_senha: "reset_senha";
         manual: "manual";
         agendado: "agendado";
-        boas_vindas: "boas_vindas";
         atualizacao_pontos: "atualizacao_pontos";
         resgate: "resgate";
         resgate_nao_retirar_loja: "resgate_nao_retirar_loja";
@@ -32,10 +32,10 @@ export declare const updateCampanhaDisparoSchema: z.ZodObject<{
     html: z.ZodOptional<z.ZodString>;
     remetente_id: z.ZodOptional<z.ZodString>;
     tipo_envio: z.ZodOptional<z.ZodEnum<{
+        boas_vindas: "boas_vindas";
         reset_senha: "reset_senha";
         manual: "manual";
         agendado: "agendado";
-        boas_vindas: "boas_vindas";
         atualizacao_pontos: "atualizacao_pontos";
         resgate: "resgate";
         resgate_nao_retirar_loja: "resgate_nao_retirar_loja";

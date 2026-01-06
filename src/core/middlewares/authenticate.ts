@@ -30,9 +30,10 @@ const isPublicRoute = (path: string): boolean => {
 }
 
 /**
- * Verifica se a rota de disparo automático é para reset de senha (rota pública)
+ * Verifica se a rota de disparo automático é pública (boas_vindas ou reset_senha)
+ * Essas rotas não precisam de autenticação porque são chamadas durante o cadastro de clientes
  */
-const isResetSenhaRoute = (req: Request): boolean => {
+const isPublicDisparoAutomaticoRoute = (req: Request): boolean => {
   // Verifica se é a rota de disparo automático
   const fullPath = req.baseUrl + req.path
   const originalUrl = req.originalUrl || fullPath
@@ -45,10 +46,14 @@ const isResetSenhaRoute = (req: Request): boolean => {
   
   if (isDisparoAutomaticoRoute && req.method === 'POST') {
     try {
-      // Tenta ler o body para verificar se é reset_senha
+      // Tenta ler o body para verificar o tipo_envio
       const body = req.body as any
-      if (body && typeof body === 'object' && 'tipo_envio' in body && body.tipo_envio === 'reset_senha') {
-        return true
+      if (body && typeof body === 'object' && 'tipo_envio' in body) {
+        // Rotas públicas: boas_vindas (cadastro de cliente) e reset_senha
+        const publicTipos = ['boas_vindas', 'reset_senha']
+        if (publicTipos.includes(body.tipo_envio)) {
+          return true
+        }
       }
     } catch (error) {
       // Se não conseguir ler o body, continua com autenticação normal
@@ -64,8 +69,8 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
       return next()
     }
 
-    // Verifica se é rota de reset de senha (pública)
-    if (isResetSenhaRoute(req)) {
+    // Verifica se é rota de disparo automático pública (boas_vindas ou reset_senha)
+    if (isPublicDisparoAutomaticoRoute(req)) {
       return next()
     }
 
