@@ -41,9 +41,11 @@ export class DisparoAutomaticoController {
   disparar = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const schema = req.schema!
+      
       const parseResult = disparoAutomaticoSchema.safeParse(req.body)
       
       if (!parseResult.success) {
+        console.error('Erro de validação:', parseResult.error.issues)
         throw new AppError('Dados inválidos', 400, parseResult.error.issues)
       }
 
@@ -104,11 +106,13 @@ export class DisparoAutomaticoController {
           await this.disparoAutomaticoService.dispararResgateNaoRetirarLoja(schema, clienteData, accessToken)
           break
         default:
+          console.error('Tipo de disparo inválido:', tipo_envio)
           throw new AppError('Tipo de disparo inválido', 400)
       }
 
       return res.status(204).send()
     } catch (error) {
+      console.error('Erro no processamento:', error)
       return next(error)
     }
   }

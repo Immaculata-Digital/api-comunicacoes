@@ -58,11 +58,13 @@ export const routeAuthorization = (req: Request, res: Response, next: NextFuncti
     }
 
     if (!req.user) {
+      console.error('Usuário não autenticado')
       throw new AppError('Usuário não autenticado', 401)
     }
 
     next()
   } catch (error) {
+    console.error('Erro na autorização:', error)
     if (error instanceof AppError) {
       return res.status(error.statusCode).json({ status: 'error', message: error.message })
     }

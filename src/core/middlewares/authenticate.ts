@@ -72,12 +72,14 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     const authHeader = req.headers.authorization
 
     if (!authHeader) {
+      console.error('Token de autenticação não fornecido')
       throw new AppError('Token de autenticação não fornecido', 401)
     }
 
     const [scheme, token] = authHeader.split(' ')
 
     if (scheme !== 'Bearer' || !token) {
+      console.error('Formato de token inválido')
       throw new AppError('Formato de token inválido. Use: Bearer <token>', 401)
     }
 
@@ -86,6 +88,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
 
     next()
   } catch (error) {
+    console.error('Erro na autenticação:', error)
     if (error instanceof AppError) {
       return res.status(error.statusCode).json({ status: 'error', message: error.message })
     }

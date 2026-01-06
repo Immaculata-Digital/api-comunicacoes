@@ -8,6 +8,7 @@ exports.env = {
     app: {
         port: Number(process.env.PORT ?? 3336),
         webUrl: process.env.APP_WEB_URL ?? 'http://localhost:5173',
+        passwordResetPath: process.env.PASSWORD_RESET_PATH ?? '/account/set-password',
     },
     database: {
         host: process.env.DB_HOST ?? 'localhost',

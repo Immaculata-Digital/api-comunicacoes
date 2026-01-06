@@ -3,6 +3,7 @@ export declare const env: {
     app: {
         port: number;
         webUrl: string;
+        passwordResetPath: string;
     };
     database: {
         host: string;

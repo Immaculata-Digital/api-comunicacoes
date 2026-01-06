@@ -215,6 +215,7 @@ export class DisparoAutomaticoService {
       ...cliente,
       codigo_cliente: cliente.codigo_cliente || `CLI-${cliente.id_cliente}`,
     }
+    
     const campanhas = await this.campanhaDisparoRepository.findByTipoEnvio(schema, 'resgate_nao_retirar_loja')
     
     for (const campanhaProps of campanhas) {
@@ -223,6 +224,11 @@ export class DisparoAutomaticoService {
         // Precisamos usar o EnviarCampanhaDisparoUseCase que já suporta grupos
         if (campanhaProps.tipo_destinatario !== 'grupo_acesso') {
           console.warn(`Campanha ${campanhaProps.id_campanha} não está configurada para grupo_acesso. Pulando.`)
+          continue
+        }
+
+        if (!campanhaProps.clientes_ids) {
+          console.warn(`Campanha ${campanhaProps.id_campanha} não tem clientes_ids (grupo). Pulando.`)
           continue
         }
 
@@ -249,7 +255,11 @@ export class DisparoAutomaticoService {
           accessToken
         )
       } catch (error: any) {
-        console.error(`Erro ao disparar email de resgate não retirar loja para grupo:`, error)
+        console.error(`Erro ao disparar email de resgate não retirar loja para grupo:`, {
+          error: error.message,
+          stack: error.stack,
+          campanha_id: campanhaProps.id_campanha,
+        })
       }
     }
   }
@@ -267,16 +277,19 @@ export class DisparoAutomaticoService {
     // Buscar a campanha
     const campanhaProps = await this.campanhaDisparoRepository.findById(schema, campanhaId)
     if (!campanhaProps) {
+      console.error('Campanha não encontrada:', campanhaId)
       throw new AppError('Campanha não encontrada', 404)
     }
 
     if (campanhaProps.tipo_destinatario !== 'grupo_acesso' || !campanhaProps.clientes_ids) {
+      console.error('Campanha não configurada para grupo de acesso')
       throw new AppError('Campanha não configurada para grupo de acesso', 400)
     }
 
     // Buscar o remetente SMTP
     const remetente = await this.remetenteSmtpRepository.findById(schema, campanhaProps.remetente_id)
     if (!remetente) {
+      console.error('Remetente SMTP não encontrado:', campanhaProps.remetente_id)
       throw new AppError('Remetente SMTP não encontrado', 404)
     }
 
@@ -284,6 +297,12 @@ export class DisparoAutomaticoService {
     if (remetente.senha.startsWith('$2')) {
       console.warn(`Remetente ${remetente.id_remetente} tem senha em formato antigo. Pulando envio.`)
       return
+    }
+    
+    // Verificar se o remetente tem todas as configurações necessárias
+    if (!remetente.smtp_host || !remetente.email || !remetente.senha) {
+      console.error('Remetente SMTP incompleto')
+      throw new AppError('Configuração do remetente SMTP incompleta', 400)
     }
 
     // Descriptografar senha
@@ -293,6 +312,7 @@ export class DisparoAutomaticoService {
         senhaDescriptografada = decryptPassword(remetente.senha)
       }
     } catch (error) {
+      console.warn('Erro ao descriptografar senha, usando senha original')
       senhaDescriptografada = remetente.senha
     }
 
@@ -306,6 +326,20 @@ export class DisparoAutomaticoService {
         pass: senhaDescriptografada,
       },
     })
+    
+    // Verificar conexão SMTP antes de enviar
+    try {
+      await transporter.verify()
+    } catch (error: any) {
+      console.error('Erro ao verificar conexão SMTP:', {
+        error: error.message,
+        code: error.code,
+        command: error.command,
+        response: error.response,
+        responseCode: error.responseCode,
+      })
+      throw error
+    }
 
     // Buscar usuários do grupo
     const grupoChave = campanhaProps.clientes_ids
@@ -328,20 +362,34 @@ export class DisparoAutomaticoService {
       }
     }
 
+    if (usuarios.length === 0) {
+      console.warn('Nenhum usuário encontrado no grupo:', grupoChave)
+      return
+    }
+
     // Enviar email para cada usuário
     let totalEnviados = 0
     for (const usuario of usuarios) {
       try {
         const emailUsuario = usuario.email || usuario.emailUsuario
-        await transporter.sendMail({
+        
+        const mailOptions = {
           from: `"${remetente.nome}" <${remetente.email}>`,
           to: emailUsuario,
           subject: assunto,
           html: html,
-        })
+        }
+        
+        await transporter.sendMail(mailOptions)
         totalEnviados++
       } catch (error: any) {
-        console.error(`Erro ao enviar email para ${usuario.email}:`, error)
+        console.error(`Erro ao enviar email para ${usuario.email || usuario.emailUsuario}:`, {
+          error: error.message,
+          code: error.code,
+          command: error.command,
+          response: error.response,
+          responseCode: error.responseCode,
+        })
       }
     }
 

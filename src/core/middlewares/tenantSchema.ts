@@ -17,12 +17,14 @@ export async function tenantSchema(
 ) {
   const { schema } = req.params
   if (!schema || !VALID.test(schema)) {
+    console.error('Schema inválido:', schema)
     return res.status(400).json({
       mensagem:
         "Schema inválido. Use apenas letras, números e '_' e inicie com letra ou '_' (ex.: loja_1)",
       recebido: schema ?? null,
     })
   }
+  
   req.schema = schema
   next()
 }
