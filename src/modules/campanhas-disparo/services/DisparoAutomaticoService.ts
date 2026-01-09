@@ -165,7 +165,8 @@ export class DisparoAutomaticoService {
   async dispararResetSenha(
     schema: string,
     cliente: ClienteData,
-    accessToken?: string
+    accessToken?: string,
+    webUrl?: string
   ): Promise<void> {
     const clienteData: ClienteDataForService = {
       ...cliente,
@@ -174,9 +175,10 @@ export class DisparoAutomaticoService {
     const campanhas = await this.campanhaDisparoRepository.findByTipoEnvio(schema, 'reset_senha')
     
     // Construir URL de reset se houver token
+    // Usa webUrl dinâmica se fornecida, senão usa a do env
     let urlReset = ''
     if (clienteData.token_reset) {
-      const baseUrl = env.app.webUrl.replace(/\/$/, '')
+      const baseUrl = (webUrl || env.app.webUrl).replace(/\/$/, '')
       const path = env.app.passwordResetPath.startsWith('/') ? env.app.passwordResetPath : `/${env.app.passwordResetPath}`
       urlReset = `${baseUrl}${path}?token=${clienteData.token_reset}`
     }

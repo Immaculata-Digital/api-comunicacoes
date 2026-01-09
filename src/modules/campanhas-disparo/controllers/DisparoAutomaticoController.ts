@@ -26,6 +26,7 @@ const disparoAutomaticoSchema = z.object({
     id_cliente: z.union([z.number().int().positive(), z.string()]),
     ...clienteBaseSchema,
   }),
+  web_url: z.string().url().optional(), // URL dinâmica do front-end (para reset_senha)
 })
 
 export class DisparoAutomaticoController {
@@ -49,7 +50,7 @@ export class DisparoAutomaticoController {
         throw new AppError('Dados inválidos', 400, parseResult.error.issues)
       }
 
-      const { tipo_envio, cliente } = parseResult.data
+      const { tipo_envio, cliente, web_url } = parseResult.data
       const accessToken = req.headers.authorization?.replace('Bearer ', '')
 
       // Criar objeto clienteData apenas com propriedades definidas
@@ -100,7 +101,7 @@ export class DisparoAutomaticoController {
           await this.disparoAutomaticoService.dispararResgate(schema, clienteData, accessToken)
           break
         case 'reset_senha':
-          await this.disparoAutomaticoService.dispararResetSenha(schema, clienteData, accessToken)
+          await this.disparoAutomaticoService.dispararResetSenha(schema, clienteData, accessToken, web_url)
           break
         case 'resgate_nao_retirar_loja':
           await this.disparoAutomaticoService.dispararResgateNaoRetirarLoja(schema, clienteData, accessToken)
