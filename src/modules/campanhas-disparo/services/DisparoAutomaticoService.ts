@@ -179,8 +179,18 @@ export class DisparoAutomaticoService {
     let urlReset = ''
     if (clienteData.token_reset) {
       const baseUrl = (webUrl || env.app.webUrl).replace(/\/$/, '')
-      const path = env.app.passwordResetPath.startsWith('/') ? env.app.passwordResetPath : `/${env.app.passwordResetPath}`
+      // Garantir que o path sempre comece com /
+      const path = env.app.passwordResetPath 
+        ? (env.app.passwordResetPath.startsWith('/') ? env.app.passwordResetPath : `/${env.app.passwordResetPath}`)
+        : '/account/set-password' // Fallback padrão
       urlReset = `${baseUrl}${path}?token=${clienteData.token_reset}`
+      
+      console.log('🔗 [SMTP DEBUG] URL de reset construída:', {
+        baseUrl,
+        path,
+        passwordResetPath: env.app.passwordResetPath,
+        urlReset,
+      })
     }
     
     for (const campanhaProps of campanhas) {
