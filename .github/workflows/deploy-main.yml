@@ -76,6 +76,7 @@ jobs:
             -e DB_PASS='${{ secrets.DB_PASS_MAIN }}' \
             -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
             -e JWT_EXPIRES_IN='${{ secrets.JWT_EXPIRES_IN }}' \
+            -e CRYPTO_SECRET='${{ secrets.CRYPTO_SECRET }}' \
             -e API_USUARIOS_URL='${{ secrets.VITE_API_USUARIOS_URL_MAIN }}' \
             -e PORT='3336' \
             ghcr.io/${REPO_OWNER_LOWER}/${IMAGE_NAME}:main
