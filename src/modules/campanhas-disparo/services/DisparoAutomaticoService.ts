@@ -442,7 +442,11 @@ export class DisparoAutomaticoService {
       if (remetente.senha.includes(':')) {
         senhaDescriptografada = decryptPassword(remetente.senha)
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Erro ao descriptografar senha do remetente SMTP:', {
+        remetente_id: remetente.id_remetente,
+        error: error.message,
+      })
       // Se não conseguir descriptografar, usar como está
       senhaDescriptografada = remetente.senha
     }
@@ -456,11 +460,33 @@ export class DisparoAutomaticoService {
         user: remetente.email,
         pass: senhaDescriptografada,
       },
+      // Opções adicionais para melhor compatibilidade
+      tls: {
+        rejectUnauthorized: false, // Aceitar certificados auto-assinados
+      },
+      // Se secure for false, usar STARTTLS
+      requireTLS: !remetente.smtp_secure && remetente.smtp_port === 587,
     })
+    
+    // Verificar conexão SMTP antes de enviar
+    try {
+      await transporter.verify()
+    } catch (error: any) {
+      console.error('Erro ao verificar conexão SMTP:', {
+        error: error.message,
+        code: error.code,
+        command: error.command,
+        response: error.response,
+        responseCode: error.responseCode,
+        remetente_id: remetente.id_remetente,
+        remetente_email: remetente.email,
+      })
+      throw error
+    }
 
     // Enviar email
     await transporter.sendMail({
-      from: remetente.email,
+      from: `"${remetente.nome}" <${remetente.email}>`,
       to: cliente.email,
       subject: campanhaProps.assunto,
       html: html,
