@@ -439,7 +439,7 @@ export class DisparoAutomaticoService {
       smtp_secure: remetente.smtp_secure,
       senha_format: remetente.senha.startsWith('$2') ? 'bcrypt (antigo)' : remetente.senha.includes(':') ? 'criptografada' : 'texto plano',
       senha_length: remetente.senha.length,
-      senha_preview: remetente.senha.substring(0, 20) + '...' + remetente.senha.substring(remetente.senha.length - 10),
+      senha_criptografada_COMPLETA: remetente.senha, // ⚠️ DEBUG: Senha completa do banco
     })
 
     // Verificar senha antiga
@@ -456,7 +456,7 @@ export class DisparoAutomaticoService {
         senhaDescriptografada = decryptPassword(remetente.senha)
         console.log('✅ [SMTP DEBUG] Senha descriptografada com sucesso:', {
           senha_length: senhaDescriptografada.length,
-          senha_preview: senhaDescriptografada.substring(0, 3) + '***' + senhaDescriptografada.substring(senhaDescriptografada.length - 3),
+          senha_original_COMPLETA: senhaDescriptografada, // ⚠️ DEBUG: Senha descriptografada completa
           senha_has_special_chars: /[!@#$%^&*(),.?":{}|<>]/.test(senhaDescriptografada),
           senha_has_numbers: /\d/.test(senhaDescriptografada),
           senha_has_uppercase: /[A-Z]/.test(senhaDescriptografada),
@@ -481,8 +481,8 @@ export class DisparoAutomaticoService {
       port: remetente.smtp_port,
       secure: remetente.smtp_secure,
       auth_user: remetente.email,
+      auth_pass_COMPLETA: senhaDescriptografada, // ⚠️ DEBUG: Senha que será usada na autenticação
       auth_pass_length: senhaDescriptografada.length,
-      auth_pass_preview: senhaDescriptografada.substring(0, 2) + '***' + senhaDescriptografada.substring(senhaDescriptografada.length - 2),
       requireTLS: !remetente.smtp_secure && remetente.smtp_port === 587,
     })
 
@@ -520,8 +520,9 @@ export class DisparoAutomaticoService {
         smtp_port: remetente.smtp_port,
         smtp_secure: remetente.smtp_secure,
         auth_user: remetente.email,
+        auth_pass_COMPLETA: senhaDescriptografada, // ⚠️ DEBUG: Senha usada na autenticação (que falhou)
         auth_pass_length: senhaDescriptografada.length,
-        auth_pass_preview: senhaDescriptografada.substring(0, 2) + '***' + senhaDescriptografada.substring(senhaDescriptografada.length - 2),
+        senha_criptografada_original: remetente.senha, // ⚠️ DEBUG: Senha criptografada do banco
       })
       throw error
     }
