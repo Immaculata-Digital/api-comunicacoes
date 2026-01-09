@@ -430,6 +430,18 @@ export class DisparoAutomaticoService {
       throw new AppError('Remetente SMTP não encontrado', 404)
     }
 
+    console.log('🔍 [SMTP DEBUG] Configuração do remetente SMTP:', {
+      remetente_id: remetente.id_remetente,
+      remetente_nome: remetente.nome,
+      remetente_email: remetente.email,
+      smtp_host: remetente.smtp_host,
+      smtp_port: remetente.smtp_port,
+      smtp_secure: remetente.smtp_secure,
+      senha_format: remetente.senha.startsWith('$2') ? 'bcrypt (antigo)' : remetente.senha.includes(':') ? 'criptografada' : 'texto plano',
+      senha_length: remetente.senha.length,
+      senha_preview: remetente.senha.substring(0, 20) + '...' + remetente.senha.substring(remetente.senha.length - 10),
+    })
+
     // Verificar senha antiga
     if (remetente.senha.startsWith('$2')) {
       console.warn(`Remetente ${remetente.id_remetente} tem senha em formato antigo. Pulando envio.`)
@@ -440,18 +452,40 @@ export class DisparoAutomaticoService {
     let senhaDescriptografada = remetente.senha
     try {
       if (remetente.senha.includes(':')) {
+        console.log('🔓 [SMTP DEBUG] Tentando descriptografar senha...')
         senhaDescriptografada = decryptPassword(remetente.senha)
+        console.log('✅ [SMTP DEBUG] Senha descriptografada com sucesso:', {
+          senha_length: senhaDescriptografada.length,
+          senha_preview: senhaDescriptografada.substring(0, 3) + '***' + senhaDescriptografada.substring(senhaDescriptografada.length - 3),
+          senha_has_special_chars: /[!@#$%^&*(),.?":{}|<>]/.test(senhaDescriptografada),
+          senha_has_numbers: /\d/.test(senhaDescriptografada),
+          senha_has_uppercase: /[A-Z]/.test(senhaDescriptografada),
+          senha_has_lowercase: /[a-z]/.test(senhaDescriptografada),
+        })
+      } else {
+        console.log('ℹ️ [SMTP DEBUG] Senha não está criptografada, usando como está')
       }
     } catch (error: any) {
-      console.error('Erro ao descriptografar senha do remetente SMTP:', {
+      console.error('❌ [SMTP DEBUG] Erro ao descriptografar senha do remetente SMTP:', {
         remetente_id: remetente.id_remetente,
         error: error.message,
+        error_stack: error.stack,
       })
       // Se não conseguir descriptografar, usar como está
       senhaDescriptografada = remetente.senha
     }
 
     // Configurar transporter
+    console.log('⚙️ [SMTP DEBUG] Configurando transporter nodemailer:', {
+      host: remetente.smtp_host,
+      port: remetente.smtp_port,
+      secure: remetente.smtp_secure,
+      auth_user: remetente.email,
+      auth_pass_length: senhaDescriptografada.length,
+      auth_pass_preview: senhaDescriptografada.substring(0, 2) + '***' + senhaDescriptografada.substring(senhaDescriptografada.length - 2),
+      requireTLS: !remetente.smtp_secure && remetente.smtp_port === 587,
+    })
+
     const transporter = nodemailer.createTransport({
       host: remetente.smtp_host,
       port: remetente.smtp_port,
@@ -469,10 +503,12 @@ export class DisparoAutomaticoService {
     })
     
     // Verificar conexão SMTP antes de enviar
+    console.log('🔐 [SMTP DEBUG] Verificando conexão SMTP...')
     try {
       await transporter.verify()
+      console.log('✅ [SMTP DEBUG] Conexão SMTP verificada com sucesso!')
     } catch (error: any) {
-      console.error('Erro ao verificar conexão SMTP:', {
+      console.error('❌ [SMTP DEBUG] Erro ao verificar conexão SMTP:', {
         error: error.message,
         code: error.code,
         command: error.command,
@@ -480,6 +516,12 @@ export class DisparoAutomaticoService {
         responseCode: error.responseCode,
         remetente_id: remetente.id_remetente,
         remetente_email: remetente.email,
+        smtp_host: remetente.smtp_host,
+        smtp_port: remetente.smtp_port,
+        smtp_secure: remetente.smtp_secure,
+        auth_user: remetente.email,
+        auth_pass_length: senhaDescriptografada.length,
+        auth_pass_preview: senhaDescriptografada.substring(0, 2) + '***' + senhaDescriptografada.substring(senhaDescriptografada.length - 2),
       })
       throw error
     }
