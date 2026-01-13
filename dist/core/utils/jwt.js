@@ -17,7 +17,7 @@ const generateAccessToken = (data) => {
     };
     const options = {
         subject: data.userId,
-        expiresIn: '15m',
+        expiresIn: '12h',
     };
     return jsonwebtoken_1.default.sign(payload, env_1.env.security.jwtSecret, options);
 };
