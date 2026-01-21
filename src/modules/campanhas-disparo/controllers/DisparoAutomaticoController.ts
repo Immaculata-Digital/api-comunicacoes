@@ -9,12 +9,16 @@ import { z } from 'zod'
 const clienteBaseSchema = {
   nome_completo: z.string(),
   email: z.string().email(),
+  whatsapp: z.string().optional(),
+  cep: z.string().optional(),
   codigo_cliente: z.string().optional(),
   saldo_pontos: z.number().optional(),
   pontos_acumulados: z.number().optional(),
   total_pontos: z.number().optional(),
   codigo_resgate: z.string().optional(),
   item_nome: z.string().optional(),
+  item_descricao: z.string().optional(),
+  item_qtd_pontos: z.number().optional(),
   pontos_apos_resgate: z.number().optional(),
   token_reset: z.string().optional(),
 }
