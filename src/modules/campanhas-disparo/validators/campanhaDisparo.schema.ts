@@ -6,7 +6,15 @@ export const createCampanhaDisparoSchema = z.object({
   assunto: z.string().min(3, 'Assunto deve ter no mínimo 3 caracteres'),
   html: z.string().min(1, 'Conteúdo HTML é obrigatório'),
   remetente_id: z.string().uuid('ID do remetente inválido'),
-  tipo_envio: z.enum(['manual', 'agendado', 'boas_vindas', 'atualizacao_pontos', 'resgate', 'reset_senha', 'resgate_nao_retirar_loja']),
+  tipo_envio: z.preprocess(
+    (val) => {
+      if (typeof val === 'string' && val.trim() === '') {
+        return 'manual'
+      }
+      return val
+    },
+    z.enum(['manual', 'agendado', 'boas_vindas', 'atualizacao_pontos', 'resgate', 'reset_senha', 'resgate_nao_retirar_loja'])
+  ),
   data_agendamento: z.string().nullable().optional(),
   chave: z.string().optional(),
   tipo_destinatario: z.enum(['todos', 'lojas_especificas', 'clientes_especificos', 'grupo_acesso']).optional(),

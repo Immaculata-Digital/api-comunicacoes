@@ -19,6 +19,11 @@ export class CreateCampanhaDisparoUseCase {
       ? new Date(data.data_agendamento) 
       : null
     
+    // Garantir que tipo_envio seja 'manual' se estiver vazio
+    const tipoEnvio = (data.tipo_envio && typeof data.tipo_envio === 'string' && data.tipo_envio.trim() !== '') 
+      ? data.tipo_envio 
+      : 'manual'
+    
     const createProps: {
       tipo: 'email'
       descricao: string
@@ -39,7 +44,7 @@ export class CreateCampanhaDisparoUseCase {
       assunto: data.assunto,
       html: data.html,
       remetente_id: data.remetente_id,
-      tipo_envio: data.tipo_envio,
+      tipo_envio: tipoEnvio,
       data_agendamento: dataAgendamento,
       tipo_destinatario: data.tipo_destinatario || 'todos',
       lojas_ids: data.lojas_ids || null,
