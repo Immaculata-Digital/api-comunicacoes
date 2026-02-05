@@ -80,7 +80,7 @@ jobs:
             -e APP_WEB_URL='${{ secrets.APP_WEB_URL_MAIN }}' \
             -e PASSWORD_RESET_PATH='${{ secrets.PASSWORD_RESET_PATH }}' \
             -e API_USUARIOS_URL='${{ secrets.VITE_API_USUARIOS_URL_MAIN }}' \
-            -e API_CLIENTES_V2_URL='${{ secrets.VITE_API_CLIENTES_V2_URL_MAIN }}' \
+            -e API_CLIENTES_V2_URL='${{ secrets.VITE_API_CLIENTES_URL_MAIN }}' \
             -e PORT='3336' \
             ghcr.io/${REPO_OWNER_LOWER}/${IMAGE_NAME}:main
 
