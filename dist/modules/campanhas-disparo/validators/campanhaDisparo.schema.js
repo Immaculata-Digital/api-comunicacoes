@@ -8,7 +8,12 @@ exports.createCampanhaDisparoSchema = zod_1.z.object({
     assunto: zod_1.z.string().min(3, 'Assunto deve ter no mínimo 3 caracteres'),
     html: zod_1.z.string().min(1, 'Conteúdo HTML é obrigatório'),
     remetente_id: zod_1.z.string().uuid('ID do remetente inválido'),
-    tipo_envio: zod_1.z.enum(['manual', 'agendado', 'boas_vindas', 'atualizacao_pontos', 'resgate', 'reset_senha', 'resgate_nao_retirar_loja']),
+    tipo_envio: zod_1.z.preprocess((val) => {
+        if (typeof val === 'string' && val.trim() === '') {
+            return 'manual';
+        }
+        return val;
+    }, zod_1.z.enum(['manual', 'agendado', 'boas_vindas', 'atualizacao_pontos', 'resgate', 'reset_senha', 'resgate_nao_retirar_loja'])),
     data_agendamento: zod_1.z.string().nullable().optional(),
     chave: zod_1.z.string().optional(),
     tipo_destinatario: zod_1.z.enum(['todos', 'lojas_especificas', 'clientes_especificos', 'grupo_acesso']).optional(),

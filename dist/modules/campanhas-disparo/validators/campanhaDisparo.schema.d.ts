@@ -5,7 +5,7 @@ export declare const createCampanhaDisparoSchema: z.ZodObject<{
     assunto: z.ZodString;
     html: z.ZodString;
     remetente_id: z.ZodString;
-    tipo_envio: z.ZodEnum<{
+    tipo_envio: z.ZodPipe<z.ZodTransform<unknown, unknown>, z.ZodEnum<{
         boas_vindas: "boas_vindas";
         reset_senha: "reset_senha";
         manual: "manual";
@@ -13,7 +13,7 @@ export declare const createCampanhaDisparoSchema: z.ZodObject<{
         atualizacao_pontos: "atualizacao_pontos";
         resgate: "resgate";
         resgate_nao_retirar_loja: "resgate_nao_retirar_loja";
-    }>;
+    }>>;
     data_agendamento: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     chave: z.ZodOptional<z.ZodString>;
     tipo_destinatario: z.ZodOptional<z.ZodEnum<{
