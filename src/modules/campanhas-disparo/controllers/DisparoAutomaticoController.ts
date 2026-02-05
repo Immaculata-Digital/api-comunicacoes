@@ -21,6 +21,7 @@ const clienteBaseSchema = {
   item_qtd_pontos: z.number().optional(),
   pontos_apos_resgate: z.number().optional(),
   token_reset: z.string().optional(),
+  id_loja: z.union([z.number(), z.string(), z.null()]).optional(),
 }
 
 // Schema que aceita id_cliente como número ou string (para reset_senha de usuários do sistema)
@@ -46,9 +47,9 @@ export class DisparoAutomaticoController {
   disparar = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const schema = req.schema!
-      
+
       const parseResult = disparoAutomaticoSchema.safeParse(req.body)
-      
+
       if (!parseResult.success) {
         console.error('Erro de validação:', parseResult.error.issues)
         throw new AppError('Dados inválidos', 400, parseResult.error.issues)
@@ -75,6 +76,7 @@ export class DisparoAutomaticoController {
         item_qtd_pontos?: number
         pontos_apos_resgate?: number
         token_reset?: string
+        id_loja?: number | null
       } = {
         id_cliente: cliente.id_cliente,
         nome_completo: cliente.nome_completo,
@@ -93,6 +95,10 @@ export class DisparoAutomaticoController {
       if (clienteAny.item_qtd_pontos !== undefined && clienteAny.item_qtd_pontos !== null) clienteData.item_qtd_pontos = clienteAny.item_qtd_pontos
       if (clienteAny.pontos_apos_resgate !== undefined && clienteAny.pontos_apos_resgate !== null) clienteData.pontos_apos_resgate = clienteAny.pontos_apos_resgate
       if (clienteAny.token_reset !== undefined && clienteAny.token_reset !== null) clienteData.token_reset = clienteAny.token_reset
+      if (clienteAny.id_loja !== undefined && clienteAny.id_loja !== null) {
+        const parsedIdLoja = parseInt(String(clienteAny.id_loja))
+        if (!isNaN(parsedIdLoja)) clienteData.id_loja = parsedIdLoja
+      }
 
       switch (tipo_envio) {
         case 'boas_vindas':

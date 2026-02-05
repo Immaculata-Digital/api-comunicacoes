@@ -25,6 +25,7 @@ interface ClienteData {
   item_qtd_pontos?: number
   pontos_apos_resgate?: number
   token_reset?: string
+  id_loja?: number | null
 }
 
 interface ClienteDataForService {
@@ -43,13 +44,14 @@ interface ClienteDataForService {
   item_qtd_pontos?: number
   pontos_apos_resgate?: number
   token_reset?: string
+  id_loja?: number | null
 }
 
 export class DisparoAutomaticoService {
   constructor(
     private readonly campanhaDisparoRepository: ICampanhaDisparoRepository,
     private readonly remetenteSmtpRepository: IRemetenteSmtpRepository
-  ) {}
+  ) { }
 
   /**
    * Dispara email de boas-vindas quando um cliente se cadastra
@@ -64,7 +66,7 @@ export class DisparoAutomaticoService {
       codigo_cliente: cliente.codigo_cliente || `CLI-${cliente.id_cliente}`,
     }
     const campanhas = await this.campanhaDisparoRepository.findByTipoEnvio(schema, 'boas_vindas')
-    
+
     for (const campanhaProps of campanhas) {
       try {
         // Criar uma campanha temporária para envio
@@ -73,7 +75,7 @@ export class DisparoAutomaticoService {
         html = html.replace(/\{\{nome_cliente\}\}/g, clienteData.nome_completo || 'Cliente')
         html = html.replace(/\{\{codigo_cliente\}\}/g, clienteData.codigo_cliente || '')
         html = html.replace(/\{\{email_cliente\}\}/g, clienteData.email || '')
-        
+
         await this.enviarParaCliente(
           schema,
           campanhaProps.id_campanha,
@@ -101,7 +103,7 @@ export class DisparoAutomaticoService {
       codigo_cliente: cliente.codigo_cliente || `CLI-${cliente.id_cliente}`,
     }
     const campanhas = await this.campanhaDisparoRepository.findByTipoEnvio(schema, 'atualizacao_pontos')
-    
+
     for (const campanhaProps of campanhas) {
       try {
         let html = campanhaProps.html
@@ -109,7 +111,7 @@ export class DisparoAutomaticoService {
         html = html.replace(/\{\{pontos_acumulados\}\}/g, String(clienteData.pontos_acumulados || 0))
         html = html.replace(/\{\{total_pontos\}\}/g, String(clienteData.total_pontos || clienteData.saldo_pontos || 0))
         html = html.replace(/\{\{email_cliente\}\}/g, clienteData.email || '')
-        
+
         await this.enviarParaCliente(
           schema,
           campanhaProps.id_campanha,
@@ -136,7 +138,7 @@ export class DisparoAutomaticoService {
       codigo_cliente: cliente.codigo_cliente || `CLI-${cliente.id_cliente}`,
     }
     const campanhas = await this.campanhaDisparoRepository.findByTipoEnvio(schema, 'resgate')
-    
+
     for (const campanhaProps of campanhas) {
       try {
         let html = campanhaProps.html
@@ -145,7 +147,7 @@ export class DisparoAutomaticoService {
         html = html.replace(/\{\{item_nome\}\}/g, clienteData.item_nome || '')
         html = html.replace(/\{\{pontos_apos_resgate\}\}/g, String(clienteData.pontos_apos_resgate || clienteData.saldo_pontos || 0))
         html = html.replace(/\{\{email_cliente\}\}/g, clienteData.email || '')
-        
+
         await this.enviarParaCliente(
           schema,
           campanhaProps.id_campanha,
@@ -173,18 +175,18 @@ export class DisparoAutomaticoService {
       codigo_cliente: cliente.codigo_cliente || `CLI-${cliente.id_cliente}`,
     }
     const campanhas = await this.campanhaDisparoRepository.findByTipoEnvio(schema, 'reset_senha')
-    
+
     // Construir URL de reset se houver token
     // Usa webUrl dinâmica se fornecida, senão usa a do env
     let urlReset = ''
     if (clienteData.token_reset) {
       const baseUrl = (webUrl || env.app.webUrl).replace(/\/$/, '')
       // Garantir que o path sempre comece com /
-      const path = env.app.passwordResetPath 
+      const path = env.app.passwordResetPath
         ? (env.app.passwordResetPath.startsWith('/') ? env.app.passwordResetPath : `/${env.app.passwordResetPath}`)
         : '/account/set-password' // Fallback padrão
       urlReset = `${baseUrl}${path}?token=${clienteData.token_reset}`
-      
+
       console.log('🔗 [SMTP DEBUG] URL de reset construída:', {
         baseUrl,
         path,
@@ -192,15 +194,28 @@ export class DisparoAutomaticoService {
         urlReset,
       })
     }
-    
+
     for (const campanhaProps of campanhas) {
       try {
         let html = campanhaProps.html
-        html = html.replace(/\{\{nome_cliente\}\}/g, clienteData.nome_completo || 'Cliente')
+
+        // Substituir variáveis do cliente (padrão igual ao EnviarCampanhaDisparoUseCase)
+        html = html.replace(/\{\{cliente\.nome_completo\}\}/g, clienteData.nome_completo || 'Cliente')
+        html = html.replace(/\{\{cliente\.email\}\}/g, clienteData.email || '')
+        html = html.replace(/\{\{cliente\.whatsapp\}\}/g, clienteData.whatsapp || '')
+        html = html.replace(/\{\{cliente\.saldo\}\}/g, String(clienteData.saldo_pontos || 0))
+        html = html.replace(/\{\{cliente\.cep\}\}/g, clienteData.cep || '')
+        html = html.replace(/\{\{cliente\.id_cliente\}\}/g, String(clienteData.id_cliente || ''))
+        html = html.replace(/\{\{cliente\.id_loja\}\}/g, String(clienteData.id_loja || ''))
+
+        // Substituir variáveis específicas de reset
         html = html.replace(/\{\{token_reset\}\}/g, clienteData.token_reset || '')
-        html = html.replace(/\{\{email_cliente\}\}/g, clienteData.email || '')
         html = html.replace(/\{\{url_reset\}\}/g, urlReset)
-        
+
+        // Mantendo compatibilidade com variáveis antigas (sem prefixo cliente.) se existirem
+        html = html.replace(/\{\{nome_cliente\}\}/g, clienteData.nome_completo || 'Cliente')
+        html = html.replace(/\{\{email_cliente\}\}/g, clienteData.email || '')
+
         await this.enviarParaCliente(
           schema,
           campanhaProps.id_campanha,
@@ -227,9 +242,9 @@ export class DisparoAutomaticoService {
       ...cliente,
       codigo_cliente: cliente.codigo_cliente || `CLI-${cliente.id_cliente}`,
     }
-    
+
     const campanhas = await this.campanhaDisparoRepository.findByTipoEnvio(schema, 'resgate_nao_retirar_loja')
-    
+
     for (const campanhaProps of campanhas) {
       try {
         // Para resgate_nao_retirar_loja, o destinatário é o grupo ADM-FRANQUIA
@@ -252,13 +267,13 @@ export class DisparoAutomaticoService {
         html = html.replace(/\{\{cliente\.cep\}\}/g, clienteData.cep || '')
         html = html.replace(/\{\{cliente\.saldo\}\}/g, String(clienteData.saldo_pontos || 0))
         html = html.replace(/\{\{cliente\.id_cliente\}\}/g, String(clienteData.id_cliente || ''))
-        
+
         // Substituir variáveis do item
         html = html.replace(/\{\{codigo_resgate\}\}/g, clienteData.codigo_resgate || '')
         html = html.replace(/\{\{item\.nome_item\}\}/g, clienteData.item_nome || '')
         html = html.replace(/\{\{item\.descricao\}\}/g, clienteData.item_descricao || '')
         html = html.replace(/\{\{item\.qtd_pontos\}\}/g, String(clienteData.item_qtd_pontos || 0))
-        
+
         await this.enviarParaGrupoAcesso(
           schema,
           campanhaProps.id_campanha,
@@ -310,7 +325,7 @@ export class DisparoAutomaticoService {
       console.warn(`Remetente ${remetente.id_remetente} tem senha em formato antigo. Pulando envio.`)
       return
     }
-    
+
     // Verificar se o remetente tem todas as configurações necessárias
     if (!remetente.smtp_host || !remetente.email || !remetente.senha) {
       console.error('Remetente SMTP incompleto')
@@ -338,7 +353,7 @@ export class DisparoAutomaticoService {
         pass: senhaDescriptografada,
       },
     })
-    
+
     // Verificar conexão SMTP antes de enviar
     try {
       await transporter.verify()
@@ -356,7 +371,7 @@ export class DisparoAutomaticoService {
     // Buscar usuários do grupo
     const grupoChave = campanhaProps.clientes_ids
     const apiUsuariosUrl = env.apiUsuarios.url.replace(/\/api\/?$/, '').replace(/\/$/, '')
-    
+
     // Chamar endpoint público para buscar grupo por código com usuários
     // O schema é passado no header x-schema
     const response = await axios.get(`${apiUsuariosUrl}/api/groups/public/grupo/${grupoChave}`, {
@@ -364,10 +379,10 @@ export class DisparoAutomaticoService {
         'x-schema': schema,
       },
     })
-    
+
     const grupos = response.data?.data || []
     const usuarios: any[] = []
-    
+
     for (const grupo of grupos) {
       if (grupo.usuarios && Array.isArray(grupo.usuarios)) {
         usuarios.push(...grupo.usuarios.filter((u: any) => (u.email || u.emailUsuario)?.trim()))
@@ -384,14 +399,14 @@ export class DisparoAutomaticoService {
     for (const usuario of usuarios) {
       try {
         const emailUsuario = usuario.email || usuario.emailUsuario
-        
+
         const mailOptions = {
           from: `"${remetente.nome}" <${remetente.email}>`,
           to: emailUsuario,
           subject: assunto,
           html: html,
         }
-        
+
         await transporter.sendMail(mailOptions)
         totalEnviados++
       } catch (error: any) {
@@ -513,7 +528,7 @@ export class DisparoAutomaticoService {
       // Se secure for false, usar STARTTLS
       requireTLS: !remetente.smtp_secure && remetente.smtp_port === 587,
     })
-    
+
     // Verificar conexão SMTP antes de enviar
     console.log('🔐 [SMTP DEBUG] Verificando conexão SMTP...')
     try {
