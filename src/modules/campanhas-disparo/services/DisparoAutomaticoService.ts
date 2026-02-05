@@ -176,6 +176,52 @@ export class DisparoAutomaticoService {
     }
     const campanhas = await this.campanhaDisparoRepository.findByTipoEnvio(schema, 'reset_senha')
 
+    // Variável para armazenar o nome real do cliente
+    let nomeRealCliente = clienteData.nome_completo
+
+    // Flag para indicar se conseguimos obter um nome válido (que não seja email)
+    // Se o nome atual já não parecer um email (não tem @), consideramos válido
+    let nomeEhValido = !clienteData.nome_completo.includes('@')
+
+    try {
+      // Buscar dados atualizados do cliente na API de Clientes (para garantir nome correto)
+      const apiClientesUrl = process.env.API_CLIENTES_V2_URL || 'http://localhost:7773/api'
+
+      // Apenas buscar se temos um ID válido e parece ser um cliente (número ou string numérica)
+      // Se for UUID (sistema), a rota de clientes pode não funcionar ou retornar 404
+      if (clienteData.id_cliente) {
+        // Tentar buscar na rota padrão de clientes: GET /:schema/:id
+        // Note que a rota é definida como /:schema/:id no cliente.routes.ts e o prefixo /clientes é definido no app.ts
+        // Portanto a URL completa é /clientes/:schema/:id
+        const response = await axios.get(`${apiClientesUrl}/clientes/${schema}/${clienteData.id_cliente}`, {
+          headers: {
+            Authorization: `Bearer ${process.env.API_CLIENTES_TOKEN || ''}`,
+          },
+        })
+
+        if (response.data && response.data.nome_completo) {
+          const nomeApi = response.data.nome_completo
+          // Se o nome retornado pela API não for um email, usamos ele
+          if (!nomeApi.includes('@')) {
+            console.log(`[DisparoAutomatico] Nome do cliente atualizado de "${clienteData.nome_completo}" para "${nomeApi}"`)
+            nomeRealCliente = nomeApi
+            nomeEhValido = true
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error(`[DisparoAutomatico] Erro ao buscar dados atualizados do cliente ${clienteData.id_cliente}:`, error.message)
+      // Falha silenciosa, continua com os dados que já tem
+    }
+
+    // Se no final ainda não tivermos um nome válido (ainda é email), usamos "Cliente"
+    if (!nomeEhValido && nomeRealCliente.includes('@')) {
+      nomeRealCliente = 'Cliente'
+    }
+
+    // Atualizar no objeto de dados para consistência (embora usaremos a variável local no replace)
+    clienteData.nome_completo = nomeRealCliente
+
     // Construir URL de reset se houver token
     // Usa webUrl dinâmica se fornecida, senão usa a do env
     let urlReset = ''
@@ -200,7 +246,8 @@ export class DisparoAutomaticoService {
         let html = campanhaProps.html
 
         // Substituir variáveis do cliente (padrão igual ao EnviarCampanhaDisparoUseCase)
-        html = html.replace(/\{\{cliente\.nome_completo\}\}/g, clienteData.nome_completo || 'Cliente')
+        // IMPORTANTE: Aqui garantimos que usamos a variável nomeRealCliente que foi validada/buscada
+        html = html.replace(/\{\{cliente\.nome_completo\}\}/g, nomeRealCliente)
         html = html.replace(/\{\{cliente\.email\}\}/g, clienteData.email || '')
         html = html.replace(/\{\{cliente\.whatsapp\}\}/g, clienteData.whatsapp || '')
         html = html.replace(/\{\{cliente\.saldo\}\}/g, String(clienteData.saldo_pontos || 0))
@@ -213,7 +260,7 @@ export class DisparoAutomaticoService {
         html = html.replace(/\{\{url_reset\}\}/g, urlReset)
 
         // Mantendo compatibilidade com variáveis antigas (sem prefixo cliente.) se existirem
-        html = html.replace(/\{\{nome_cliente\}\}/g, clienteData.nome_completo || 'Cliente')
+        html = html.replace(/\{\{nome_cliente\}\}/g, nomeRealCliente)
         html = html.replace(/\{\{email_cliente\}\}/g, clienteData.email || '')
 
         await this.enviarParaCliente(
