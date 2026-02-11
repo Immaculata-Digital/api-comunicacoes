@@ -30,7 +30,7 @@ export class EnviarCampanhaDisparoUseCase {
   constructor(
     private readonly campanhaDisparoRepository: ICampanhaDisparoRepository,
     private readonly remetenteSmtpRepository: IRemetenteSmtpRepository
-  ) {}
+  ) { }
 
   async execute(schema: string, id: string, data: EnviarCampanhaDisparoDTO, accessToken?: string) {
     // Buscar a campanha
@@ -173,7 +173,7 @@ export class EnviarCampanhaDisparoUseCase {
 
       // Buscar clientes da API de clientes
       const apiClientesUrl = process.env.API_CLIENTES_V2_URL || 'http://localhost:7773/api'
-      
+
       if (tipo_destinatario === 'todos') {
         // Buscar todos os clientes
         const response = await axios.get(`${apiClientesUrl}/clientes/${schema}`, {
@@ -187,7 +187,7 @@ export class EnviarCampanhaDisparoUseCase {
         // Buscar clientes das lojas especificadas
         const lojaIds = lojas_ids.split(',').map((id: string) => parseInt(id.trim())).filter((id: number) => !isNaN(id))
         const clientes: ClienteDTO[] = []
-        
+
         for (const lojaId of lojaIds) {
           try {
             const response = await axios.get(`${apiClientesUrl}/clientes/${schema}`, {
@@ -203,7 +203,7 @@ export class EnviarCampanhaDisparoUseCase {
             console.error(`Erro ao buscar clientes da loja ${lojaId}:`, error)
           }
         }
-        
+
         // Remover duplicatas
         const uniqueClientes = clientes.filter((cliente, index, self) =>
           index === self.findIndex((c) => c.id_cliente === cliente.id_cliente)
@@ -213,7 +213,7 @@ export class EnviarCampanhaDisparoUseCase {
         // Buscar clientes específicos
         const clienteIds = clientes_ids.split(',').map((id: string) => parseInt(id.trim())).filter((id: number) => !isNaN(id))
         const clientes: ClienteDTO[] = []
-        
+
         for (const clienteId of clienteIds) {
           try {
             const response = await axios.get(`${apiClientesUrl}/clientes/${schema}/${clienteId}`, {
@@ -228,10 +228,10 @@ export class EnviarCampanhaDisparoUseCase {
             console.error(`Erro ao buscar cliente ${clienteId}:`, error)
           }
         }
-        
+
         return clientes
       }
-      
+
       return []
     } catch (error: any) {
       console.error('Erro ao resolver destinatários:', error)
@@ -246,7 +246,7 @@ export class EnviarCampanhaDisparoUseCase {
   private async resolverDestinatariosGrupoAcesso(schema: string, grupoChave: string): Promise<ClienteDTO[]> {
     try {
       const apiUsuariosUrl = env.apiUsuarios.url.replace(/\/api\/?$/, '').replace(/\/$/, '')
-      
+
       // Buscar grupos com a chave especificada
       // O schema é passado no header x-schema
       const response = await axios.get(`${apiUsuariosUrl}/api/groups/public/grupo/${grupoChave}`, {
@@ -254,10 +254,10 @@ export class EnviarCampanhaDisparoUseCase {
           'x-schema': schema,
         },
       })
-      
+
       const grupos = response.data?.data || []
       const usuarios: UsuarioDTO[] = []
-      
+
       // Extrair todos os usuários dos grupos
       for (const grupo of grupos) {
         if (grupo.usuarios && Array.isArray(grupo.usuarios)) {
@@ -269,7 +269,7 @@ export class EnviarCampanhaDisparoUseCase {
           })))
         }
       }
-      
+
       // Converter para formato ClienteDTO (adaptando campos)
       // Para grupos de acesso, usamos os dados do usuário como cliente
       return usuarios
@@ -293,6 +293,7 @@ export class EnviarCampanhaDisparoUseCase {
 
   private substituirVariaveis(html: string, cliente: ClienteDTO): string {
     return html
+      .replace(/\{\{nome_cliente\}\}/g, cliente.nome_completo || '')
       .replace(/\{\{cliente\.nome_completo\}\}/g, cliente.nome_completo || '')
       .replace(/\{\{cliente\.email\}\}/g, cliente.email || '')
       .replace(/\{\{cliente\.whatsapp\}\}/g, cliente.whatsapp || '')

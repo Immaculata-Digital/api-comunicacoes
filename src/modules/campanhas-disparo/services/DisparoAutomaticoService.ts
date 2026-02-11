@@ -261,6 +261,7 @@ export class DisparoAutomaticoService {
 
         let html = campanhaProps.html
         // Substituir variáveis do cliente
+        html = html.replace(/\{\{nome_cliente\}\}/g, clienteData.nome_completo || '')
         html = html.replace(/\{\{cliente\.nome_completo\}\}/g, clienteData.nome_completo || '')
         html = html.replace(/\{\{cliente\.email\}\}/g, clienteData.email || '')
         html = html.replace(/\{\{cliente\.whatsapp\}\}/g, clienteData.whatsapp || '')
